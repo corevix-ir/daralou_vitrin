@@ -44,7 +44,7 @@ func (r *contentRepository) CreateContent(content *Models.Content) error {
 func (r *contentRepository) ExistsBySource(source, externalID string) (bool, error) {
 	var count int64
 	err := r.db.Model(&Models.Content{}).
-		Where("source = ? AND external_id = ?", source, externalID).
+		Where("source = ? AND external_url = ?", source, externalID).
 		Count(&count).Error
 	return count > 0, err
 }

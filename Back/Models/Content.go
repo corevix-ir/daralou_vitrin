@@ -5,7 +5,7 @@ import "time"
 // مقادیرِ ثابتِ منبع/نوع برای جداسازیِ اخبارِ اسکرپی از محتوای دستی.
 const (
 	ContentTypeNews = "news"
-	SourceDaralou   = "daralou"
+	SourceDaralou   = "daralouWeb"
 )
 
 type Content struct {

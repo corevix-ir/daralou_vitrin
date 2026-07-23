@@ -3,7 +3,9 @@ package Bootstrap
 import (
 	config "Back/Config"
 	"Back/Repositories"
+	"Back/Scraper"
 	"Back/Validation"
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -19,12 +21,13 @@ func InitializeApp() *echo.Echo {
 	// سرو فایل‌های استاتیک
 	//e.Static("/uploads", "uploads") // فایل‌های آپلود شده
 
-	// راه‌اندازی دیتابیس
+	// راه‌اندازی دیتابیس و اسکرپر کالی
 	db := config.GetDB()
+	scraper := config.GetCollyScraper()
 
 	// راه‌اندازی ریپوزیتوری ها
 	contentRepo := Repositories.NewContentRepository(db)
-	deviceRepo := Repositories.NewDeviceRepository(db)
+	// deviceRepo := Repositories.NewDeviceRepository(db)
 
 	// راه‌اندازی سرویس ها
 	/* jwtService := auth.NewJWTService(
@@ -33,7 +36,15 @@ func InitializeApp() *echo.Echo {
 		os.Getenv("ISSUER"),
 	)
 	*/
+	scraperService := Scraper.NewScrapCollyService(contentRepo, scraper.Collector, scraper.BaseImagePath)
 
+	// test
+	err := scraperService.ScrapDaralouNews()
+	if err != nil {
+		fmt.Println("--------------------------------------")
+		fmt.Println("Error creating daralou news: " + err.Error())
+		fmt.Println("--------------------------------------")
+	}
 	// راه‌اندازی کنترلرها
 
 	// راه‌اندازی Middleware ها
