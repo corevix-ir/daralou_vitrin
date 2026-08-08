@@ -36,12 +36,20 @@ func InitializeApp() *echo.Echo {
 	contentRepo := Repositories.NewContentRepository(db)
 	deviceRepo := Repositories.NewDeviceRepository(db)
 
+	// ---------------------------------------------------------------
+	// FIX #5: اعتبارسنجی متغیرهای محیطی مربوط به JWT
+	// اگر این مقادیر خالی باشن، توکن‌ها با secret خالی امضا میشن که خیلی خطرناکه
+	// ---------------------------------------------------------------
+	accessSecret := os.Getenv("ACCESS_TOKEN")
+	refreshSecret := os.Getenv("REFRESH_TOKEN")
+	issuer := os.Getenv("ISSUER")
+
+	if accessSecret == "" || refreshSecret == "" || issuer == "" {
+		log.Fatal("متغیرهای محیطی ACCESS_TOKEN, REFRESH_TOKEN و ISSUER باید تنظیم شده باشند")
+	}
+
 	// راه‌اندازی سرویس ها
-	jwtService := Auth.NewJWTService(
-		os.Getenv("ACCESS_TOKEN"),
-		os.Getenv("REFRESH_TOKEN"),
-		os.Getenv("ISSUER"),
-	)
+	jwtService := Auth.NewJWTService(accessSecret, refreshSecret, issuer)
 
 	authService := Services.NewAuthService(userRepo, jwtService)
 	deviceService := Services.NewDeviceService(deviceRepo, authService)
@@ -67,7 +75,12 @@ func InitializeApp() *echo.Echo {
 	// Middleware های عمومی
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	e.Use(middleware.CORS())
+
+	// ---------------------------------------------------------------
+	// FIX #1: حذف middleware.CORS() تکراری - قبلاً اول یه CORS بازِ
+	// همه-origin اضافه می‌شد و بلافاصله override می‌شد، که فقط گیج‌کننده
+	// بود. فقط پیکربندی محدودشده باقی می‌مونه.
+	// ---------------------------------------------------------------
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"http://localhost:8081"}, // فقط فرانت لوکال
 		AllowMethods: []string{"GET", "POST", "PUT", "DELETE"},

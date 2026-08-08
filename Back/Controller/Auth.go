@@ -46,12 +46,16 @@ func (ctrl *AuthController) RefreshToken(c echo.Context) error {
 		return err
 	}
 
-	accessToken, err := ctrl.authService.RefreshTokens(request.RefreshToken)
+	accessToken, refreshToken, err := ctrl.authService.RefreshTokens(request.RefreshToken)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, echo.Map{"error": err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, echo.Map{"access_token": accessToken})
+	return c.JSON(http.StatusOK, echo.Map{
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
+	})
+
 }
 
 // ================================

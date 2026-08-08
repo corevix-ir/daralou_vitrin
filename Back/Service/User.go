@@ -19,7 +19,7 @@ type AuthService interface {
 	Profile(username uint) (*DTO.ProfileResponse, error)
 	UpdateUser(id uint, request DTO.UpdateUserRequest) error
 	DeleteUser(id uint) error
-	RefreshTokens(refreshToken string) (string, error)
+	RefreshTokens(refreshToken string) (string, string, error)
 	UserList() ([]DTO.ProfileResponse, error)
 }
 
@@ -127,11 +127,10 @@ func (s *authService) Login(username, password string) (string, string, error) {
 }
 
 func (s *authService) Logout(userID uint) error {
-	/*err := s.Repository.UpdateRefreshToken(userID, "")
+	err := s.Repository.UpdateRefreshToken(userID, "")
 	if err != nil {
 		return errors.New("خطا در خروج از حساب : " + err.Error())
 	}
-	*/
 	return nil
 }
 
@@ -202,32 +201,41 @@ func (s *authService) DeleteUser(id uint) error {
 	return nil
 }
 
-func (s *authService) RefreshTokens(refreshToken string) (string, error) {
-	// اعتبارسنجی رفرش توکن
+func (s *authService) RefreshTokens(refreshToken string) (string, string, error) {
+	// اعتبارسنجی رفرش توکن (امضا و انقضا)
 	claims, err := s.jwtService.ValidateRefreshToken(refreshToken)
 	if err != nil {
-		return "", errors.New("رفرش توکن نامعتبر")
+		return "", "", errors.New("رفرش توکن نامعتبر")
 	}
 
-	// بررسی وجود توکن در دیتابیس
+	// بررسی وجود کاربر
 	user, err := s.Repository.GetByIDUser(claims.UserID)
 	if err != nil {
-		return "", errors.New("کاربر یافت نشد")
+		return "", "", errors.New("کاربر یافت نشد")
 	}
 
-	// بررسی مطابقت توکن با توکن ذخیره شده
-	/*if user.RefreshToken != refreshToken {
-		return "", errors.New("رفرش توکن نامعتبر است")
+	// بررسی مطابقت توکن با توکن ذخیره‌شده در دیتابیس
+	if user.RefreshToken == "" || user.RefreshToken != refreshToken {
+		return "", "", errors.New("رفرش توکن نامعتبر است")
 	}
-	*/
 
-	// تولید توکن‌های جدید
+	// تولید توکن دسترسی جدید
 	accessTokenDetails, err := s.jwtService.GenerateAccessTokens(user.ID)
 	if err != nil {
-		return "", errors.New("خطا در ایجاد توکن دسترسی")
+		return "", "", errors.New("خطا در ایجاد توکن دسترسی")
 	}
 
-	return accessTokenDetails.AccessToken, nil
+	// تولید و ذخیره‌ی توکن رفرش جدید (rotation)
+	refreshTokenDetails, err := s.jwtService.GenerateRefreshTokens(user.ID)
+	if err != nil {
+		return "", "", errors.New("خطا در ایجاد توکن رفرش")
+	}
+
+	if err = s.Repository.UpdateRefreshToken(user.ID, refreshTokenDetails.RefreshToken); err != nil {
+		return "", "", errors.New("خطا در ذخیره توکن رفرش")
+	}
+
+	return accessTokenDetails.AccessToken, refreshTokenDetails.RefreshToken, nil
 }
 
 func (s *authService) UserList() ([]DTO.ProfileResponse, error) {
