@@ -1,0 +1,968 @@
+basePath: /
+definitions:
+  DTO.ContentInfo:
+    properties:
+      body:
+        type: string
+      content_type:
+        type: string
+      created_by:
+        type: integer
+      createdAt:
+        type: string
+      end_date:
+        type: string
+      external_url:
+        type: string
+      extra_img_list:
+        items:
+          type: string
+        type: array
+      id:
+        type: integer
+      is_published:
+        type: boolean
+      main_img_url:
+        type: string
+      priority:
+        type: integer
+      source:
+        type: string
+      start_date:
+        type: string
+      summary:
+        type: string
+      title:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  DTO.ContentList:
+    properties:
+      content:
+        items:
+          $ref: '#/definitions/DTO.SummaryContent'
+        type: array
+    type: object
+  DTO.CreateContent:
+    properties:
+      body:
+        maxLength: 2000
+        minLength: 20
+        type: string
+      device_id:
+        items:
+          type: integer
+        type: array
+      end_date:
+        type: string
+      img_list:
+        items:
+          type: string
+        maxItems: 100
+        minItems: 1
+        type: array
+      main_img:
+        type: string
+      priority:
+        maximum: 3
+        minimum: 1
+        type: integer
+      start_date:
+        type: string
+      summary:
+        type: string
+      title:
+        maxLength: 50
+        minLength: 5
+        type: string
+    required:
+    - body
+    - device_id
+    - img_list
+    - main_img
+    - priority
+    - title
+    type: object
+  DTO.CreateDevice:
+    properties:
+      config:
+        $ref: '#/definitions/Models.JSONB'
+      ip_address:
+        type: string
+      location:
+        maxLength: 200
+        minLength: 20
+        type: string
+      mac_address:
+        maxLength: 12
+        minLength: 12
+        type: string
+      name:
+        maxLength: 50
+        minLength: 5
+        type: string
+      section:
+        type: string
+      user:
+        $ref: '#/definitions/DTO.RegisterRequest'
+      user_id:
+        type: integer
+    required:
+    - location
+    - mac_address
+    - name
+    - user
+    - user_id
+    type: object
+  DTO.DeviceList:
+    properties:
+      config:
+        $ref: '#/definitions/Models.JSONB'
+      created_at:
+        type: string
+      id:
+        type: integer
+      ip_address:
+        type: string
+      last_seen:
+        type: string
+      location:
+        type: string
+      mac_address:
+        type: string
+      name:
+        type: string
+      section:
+        type: string
+      status:
+        type: string
+    type: object
+  DTO.ErrorResponse:
+    properties:
+      error:
+        example: خطایی رخ داده است
+        type: string
+    type: object
+  DTO.LoginRequest:
+    properties:
+      password:
+        maxLength: 100
+        minLength: 8
+        type: string
+      username:
+        maxLength: 20
+        minLength: 3
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  DTO.MessageResponse:
+    properties:
+      message:
+        example: عملیات با موفقیت انجام شد
+        type: string
+    type: object
+  DTO.ProfileResponse:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      role:
+        $ref: '#/definitions/Models.UserRole'
+      status:
+        type: boolean
+      username:
+        type: string
+    type: object
+  DTO.RefreshTokenRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  DTO.RegisterRequest:
+    properties:
+      name:
+        maxLength: 20
+        minLength: 3
+        type: string
+      password:
+        maxLength: 100
+        minLength: 8
+        type: string
+      role:
+        allOf:
+        - $ref: '#/definitions/Models.UserRole'
+        description: "\U0001F504 validation جدید"
+        enum:
+        - admin
+        - operator
+        - user
+        - device
+      username:
+        maxLength: 20
+        minLength: 3
+        type: string
+    required:
+    - name
+    - password
+    - role
+    - username
+    type: object
+  DTO.SummaryContent:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      main_img:
+        type: string
+      summary:
+        type: string
+      title:
+        type: string
+    type: object
+  DTO.TokenResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  DTO.UpdateContentRequest:
+    properties:
+      body:
+        maxLength: 2000
+        minLength: 20
+        type: string
+      end_date:
+        type: string
+      img_list:
+        items:
+          type: string
+        maxItems: 100
+        minItems: 1
+        type: array
+      main_img:
+        type: string
+      priority:
+        maximum: 3
+        minimum: 1
+        type: integer
+      start_date:
+        type: string
+      summary:
+        type: string
+      title:
+        maxLength: 50
+        minLength: 5
+        type: string
+    required:
+    - body
+    - img_list
+    - main_img
+    - priority
+    - title
+    type: object
+  DTO.UpdateDevice:
+    properties:
+      config:
+        $ref: '#/definitions/Models.JSONB'
+      ip_address:
+        type: string
+      location:
+        maxLength: 200
+        minLength: 20
+        type: string
+      mac_address:
+        maxLength: 12
+        minLength: 12
+        type: string
+      name:
+        maxLength: 50
+        minLength: 5
+        type: string
+      section:
+        type: string
+      status:
+        type: string
+    type: object
+  DTO.UpdateUserRequest:
+    properties:
+      is_active:
+        type: boolean
+      name:
+        type: string
+      password:
+        type: string
+      role:
+        allOf:
+        - $ref: '#/definitions/Models.UserRole'
+        enum:
+        - admin
+        - operator
+        - user
+        - device
+      username:
+        type: string
+    type: object
+  DTO.VitrinContentList:
+    properties:
+      local_content:
+        items:
+          $ref: '#/definitions/DTO.SummaryContent'
+        type: array
+      scrap_content:
+        items:
+          $ref: '#/definitions/DTO.SummaryContent'
+        type: array
+    type: object
+  Models.JSONB:
+    additionalProperties: true
+    type: object
+  Models.UserRole:
+    enum:
+    - admin
+    - operator
+    - user
+    - device
+    type: string
+    x-enum-varnames:
+    - RoleAdmin
+    - RoleOperator
+    - RoleUser
+    - RoleDevice
+host: localhost:5749
+info:
+  contact: {}
+  description: مستندات API پروژه Back (احراز هویت، مدیریت محتوا، مدیریت دستگاه‌ها).
+  title: Back API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: احراز هویت با نام کاربری/رمز عبور و دریافت access/refresh token
+      parameters:
+      - description: اطلاعات ورود
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/DTO.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DTO.TokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      summary: ورود کاربر
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      description: توکن رفرش کاربر جاری را باطل می‌کند
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DTO.MessageResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: خروج کاربر
+      tags:
+      - Auth
+  /auth/profile:
+    get:
+      description: اطلاعات کاربر احراز هویت‌شده را برمی‌گرداند
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DTO.ProfileResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: پروفایل کاربر جاری
+      tags:
+      - Auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: با ارسال یک refresh token معتبر، access token و refresh token جدید
+        (rotate شده) صادر می‌کند
+      parameters:
+      - description: توکن رفرش فعلی
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/DTO.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DTO.TokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      summary: تمدید توکن
+      tags:
+      - Auth
+  /auth/users:
+    get:
+      description: لیست تمام کاربران سیستم (فقط ادمین)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/DTO.ProfileResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: لیست کاربران
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: فقط ادمین می‌تواند کاربر (operator/user/device) جدید بسازد
+      parameters:
+      - description: اطلاعات کاربر جدید
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/DTO.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/DTO.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: ثبت کاربر جدید
+      tags:
+      - Users
+  /auth/users/{id}:
+    delete:
+      description: حذف یک کاربر بر اساس شناسه (فقط ادمین)
+      parameters:
+      - description: شناسه کاربر
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DTO.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: حذف کاربر
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: ویرایش اطلاعات یک کاربر (فقط ادمین)
+      parameters:
+      - description: شناسه کاربر
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: فیلدهای قابل تغییر
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/DTO.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DTO.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: به‌روزرسانی کاربر
+      tags:
+      - Users
+  /contents:
+    post:
+      consumes:
+      - application/json
+      description: ایجاد یک محتوای دستی (announcement) توسط اپراتور/ادمین
+      parameters:
+      - description: اطلاعات محتوا
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/DTO.CreateContent'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/DTO.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: ایجاد محتوای دستی
+      tags:
+      - Content
+  /contents/{content_id}:
+    get:
+      description: دریافت جزئیات کامل یک محتوا؛ برای محتوای دستی، دسترسی دستگاه چک
+        می‌شود
+      parameters:
+      - description: شناسه محتوا
+        in: path
+        name: content_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DTO.ContentInfo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: جزئیات یک محتوا
+      tags:
+      - Content
+  /contents/{id}:
+    delete:
+      description: حذف یک محتوای دستی (محتوای اسکرپ‌شده قابل حذف نیست)
+      parameters:
+      - description: شناسه محتوا
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DTO.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: حذف محتوا
+      tags:
+      - Content
+    put:
+      consumes:
+      - application/json
+      description: ویرایش یک محتوای دستی (محتوای اسکرپ‌شده قابل ویرایش نیست)
+      parameters:
+      - description: شناسه محتوا
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: فیلدهای قابل تغییر
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/DTO.UpdateContentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DTO.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: به‌روزرسانی محتوا
+      tags:
+      - Content
+  /contents/local:
+    get:
+      description: لیست صفحه‌بندی‌شده محتوای اختصاص‌داده‌شده به دستگاه جاری
+      parameters:
+      - description: شماره صفحه (پیش‌فرض 1)
+        in: query
+        name: page
+        type: integer
+      - description: تعداد در هر صفحه (پیش‌فرض 20)
+        in: query
+        name: size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DTO.ContentList'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: لیست محتوای دستگاه
+      tags:
+      - Content
+  /contents/scrap:
+    get:
+      description: لیست صفحه‌بندی‌شده اخبار اسکرپ‌شده (فقط اپراتور/ادمین)
+      parameters:
+      - description: شماره صفحه (پیش‌فرض 1)
+        in: query
+        name: page
+        type: integer
+      - description: تعداد در هر صفحه (پیش‌فرض 20)
+        in: query
+        name: size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DTO.ContentList'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: لیست اخبار اسکرپ‌شده
+      tags:
+      - Content
+  /contents/vitrin:
+    get:
+      description: اخبار اسکرپ‌شده اخیر + محتوای اختصاصی با priority=1 برای دستگاه
+        جاری
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DTO.VitrinContentList'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: لیست ویترین
+      tags:
+      - Content
+  /devices:
+    get:
+      description: لیست همه دستگاه‌های ثبت‌شده - فقط ادمین
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/DTO.DeviceList'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: لیست دستگاه‌ها
+      tags:
+      - Devices
+    post:
+      consumes:
+      - application/json
+      description: ساخت یک دستگاه به‌همراه کاربر مربوطه (نقش device) - فقط ادمین
+      parameters:
+      - description: اطلاعات دستگاه
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/DTO.CreateDevice'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/DTO.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: ایجاد دستگاه
+      tags:
+      - Devices
+  /devices/{id}:
+    delete:
+      description: حذف یک دستگاه بر اساس شناسه - فقط ادمین
+      parameters:
+      - description: شناسه دستگاه
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DTO.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: حذف دستگاه
+      tags:
+      - Devices
+    put:
+      consumes:
+      - application/json
+      description: ویرایش اطلاعات یک دستگاه - فقط ادمین
+      parameters:
+      - description: شناسه دستگاه
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: فیلدهای قابل تغییر
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/DTO.UpdateDevice'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DTO.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: به‌روزرسانی دستگاه
+      tags:
+      - Devices
+securityDefinitions:
+  BearerAuth:
+    description: توکن دسترسی رو به‌صورت "Bearer {access_token}" وارد کن.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

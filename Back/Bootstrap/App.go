@@ -9,9 +9,11 @@ import (
 	"Back/Scraper"
 	Services "Back/Service"
 	"Back/Validation"
+	_ "Back/docs" // مستندات تولیدشده توسط `swag init` - قبل از build باید تولید شده باشه
 	Mymiddleware "Back/middleware"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	echoSwagger "github.com/swaggo/echo-swagger"
 	"log"
 	"os"
 )
@@ -86,6 +88,9 @@ func InitializeApp() *echo.Echo {
 		AllowMethods: []string{"GET", "POST", "PUT", "DELETE"},
 		AllowHeaders: []string{"Authorization", "Content-Type"},
 	}))
+
+	// مستندات Swagger روی /swagger/index.html
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	// ثبت مسیرها
 	Routes.RegisterAuthRoutes(e, authController, jwtMiddleware, roleMiddleware)

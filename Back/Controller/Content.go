@@ -23,6 +23,19 @@ func NewContentController(contentService Services.ContentService, deviceService 
 	}
 }
 
+// CreateContent godoc
+// @Summary      ایجاد محتوای دستی
+// @Description  ایجاد یک محتوای دستی (announcement) توسط اپراتور/ادمین
+// @Tags         Content
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        request  body      DTO.CreateContent  true  "اطلاعات محتوا"
+// @Success      201      {object}  DTO.MessageResponse
+// @Failure      400      {object}  DTO.ErrorResponse
+// @Failure      401      {object}  DTO.ErrorResponse
+// @Failure      500      {object}  DTO.ErrorResponse
+// @Router       /contents [post]
 func (ctrl *ContentController) CreateContent(c echo.Context) error {
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
@@ -41,6 +54,17 @@ func (ctrl *ContentController) CreateContent(c echo.Context) error {
 	return c.JSON(http.StatusCreated, echo.Map{"message": "محتوا با موفقیت ایجاد شد"})
 }
 
+// GetVitrinList godoc
+// @Summary      لیست ویترین
+// @Description  اخبار اسکرپ‌شده اخیر + محتوای اختصاصی با priority=1 برای دستگاه جاری
+// @Tags         Content
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  DTO.VitrinContentList
+// @Failure      401  {object}  DTO.ErrorResponse
+// @Failure      403  {object}  DTO.ErrorResponse
+// @Failure      500  {object}  DTO.ErrorResponse
+// @Router       /contents/vitrin [get]
 func (ctrl *ContentController) GetVitrinList(c echo.Context) error {
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
@@ -60,6 +84,18 @@ func (ctrl *ContentController) GetVitrinList(c echo.Context) error {
 	return c.JSON(http.StatusOK, result)
 }
 
+// GetScrapContentList godoc
+// @Summary      لیست اخبار اسکرپ‌شده
+// @Description  لیست صفحه‌بندی‌شده اخبار اسکرپ‌شده (فقط اپراتور/ادمین)
+// @Tags         Content
+// @Produce      json
+// @Security     BearerAuth
+// @Param        page  query     int  false  "شماره صفحه (پیش‌فرض 1)"
+// @Param        size  query     int  false  "تعداد در هر صفحه (پیش‌فرض 20)"
+// @Success      200   {object}  DTO.ContentList
+// @Failure      401   {object}  DTO.ErrorResponse
+// @Failure      500   {object}  DTO.ErrorResponse
+// @Router       /contents/scrap [get]
 func (ctrl *ContentController) GetScrapContentList(c echo.Context) error {
 	page, size := parsePagination(c)
 
@@ -71,6 +107,19 @@ func (ctrl *ContentController) GetScrapContentList(c echo.Context) error {
 	return c.JSON(http.StatusOK, result)
 }
 
+// GetLocalContentList godoc
+// @Summary      لیست محتوای دستگاه
+// @Description  لیست صفحه‌بندی‌شده محتوای اختصاص‌داده‌شده به دستگاه جاری
+// @Tags         Content
+// @Produce      json
+// @Security     BearerAuth
+// @Param        page  query     int  false  "شماره صفحه (پیش‌فرض 1)"
+// @Param        size  query     int  false  "تعداد در هر صفحه (پیش‌فرض 20)"
+// @Success      200   {object}  DTO.ContentList
+// @Failure      401   {object}  DTO.ErrorResponse
+// @Failure      403   {object}  DTO.ErrorResponse
+// @Failure      500   {object}  DTO.ErrorResponse
+// @Router       /contents/local [get]
 func (ctrl *ContentController) GetLocalContentList(c echo.Context) error {
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
@@ -92,6 +141,19 @@ func (ctrl *ContentController) GetLocalContentList(c echo.Context) error {
 	return c.JSON(http.StatusOK, result)
 }
 
+// GetDetailsContent godoc
+// @Summary      جزئیات یک محتوا
+// @Description  دریافت جزئیات کامل یک محتوا؛ برای محتوای دستی، دسترسی دستگاه چک می‌شود
+// @Tags         Content
+// @Produce      json
+// @Security     BearerAuth
+// @Param        content_id  path      int  true  "شناسه محتوا"
+// @Success      200         {object}  DTO.ContentInfo
+// @Failure      400         {object}  DTO.ErrorResponse
+// @Failure      401         {object}  DTO.ErrorResponse
+// @Failure      403         {object}  DTO.ErrorResponse
+// @Failure      404         {object}  DTO.ErrorResponse
+// @Router       /contents/{content_id} [get]
 func (ctrl *ContentController) GetDetailsContent(c echo.Context) error {
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
@@ -115,6 +177,20 @@ func (ctrl *ContentController) GetDetailsContent(c echo.Context) error {
 	return c.JSON(http.StatusOK, result)
 }
 
+// UpdateContent godoc
+// @Summary      به‌روزرسانی محتوا
+// @Description  ویرایش یک محتوای دستی (محتوای اسکرپ‌شده قابل ویرایش نیست)
+// @Tags         Content
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id       path      int                       true  "شناسه محتوا"
+// @Param        request  body      DTO.UpdateContentRequest  true  "فیلدهای قابل تغییر"
+// @Success      200      {object}  DTO.MessageResponse
+// @Failure      400      {object}  DTO.ErrorResponse
+// @Failure      401      {object}  DTO.ErrorResponse
+// @Failure      500      {object}  DTO.ErrorResponse
+// @Router       /contents/{id} [put]
 func (ctrl *ContentController) UpdateContent(c echo.Context) error {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -136,6 +212,18 @@ func (ctrl *ContentController) UpdateContent(c echo.Context) error {
 	return c.JSON(http.StatusOK, echo.Map{"message": "محتوا با موفقیت به‌روزرسانی شد"})
 }
 
+// DeleteContent godoc
+// @Summary      حذف محتوا
+// @Description  حذف یک محتوای دستی (محتوای اسکرپ‌شده قابل حذف نیست)
+// @Tags         Content
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id  path      int  true  "شناسه محتوا"
+// @Success      200 {object}  DTO.MessageResponse
+// @Failure      400 {object}  DTO.ErrorResponse
+// @Failure      401 {object}  DTO.ErrorResponse
+// @Failure      500 {object}  DTO.ErrorResponse
+// @Router       /contents/{id} [delete]
 func (ctrl *ContentController) DeleteContent(c echo.Context) error {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
