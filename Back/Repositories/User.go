@@ -10,13 +10,15 @@ type UserRepository interface {
 	// User
 	CreateUser(user *Models.User) error
 	GetByIDUser(id uint) (*Models.User, error)
+	GetByUsername(username string) (*Models.User, error)
 	GetAllUser() ([]Models.User, error)
 	UpdateUser(id uint, updates map[string]interface{}) error
+	UpdateRefreshToken(userID uint, refreshToken string) error
 	DeleteUser(id uint) error
 
 	// Transaction methods
 	BeginTransaction() *gorm.DB
-	WithTransaction(tx *gorm.DB) ContentRepository
+	WithTransaction(tx *gorm.DB) UserRepository
 }
 
 type userRepository struct {
@@ -42,6 +44,14 @@ func (r *userRepository) GetByIDUser(id uint) (*Models.User, error) {
 	return &user, nil
 }
 
+func (r *userRepository) GetByUsername(username string) (*Models.User, error) {
+	var user Models.User
+	if err := r.db.Where("username = ?", username).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 func (r *userRepository) GetAllUser() ([]Models.User, error) {
 	var users []Models.User
 	err := r.db.Order("created_at DESC").Find(&users).Error
@@ -50,6 +60,10 @@ func (r *userRepository) GetAllUser() ([]Models.User, error) {
 
 func (r *userRepository) UpdateUser(id uint, updates map[string]interface{}) error {
 	return r.db.Model(&Models.User{}).Where("id = ?", id).Updates(updates).Error
+}
+
+func (r *userRepository) UpdateRefreshToken(userID uint, refreshToken string) error {
+	return r.db.Model(&Models.User{}).Where("id = ?", userID).Update("refresh_token", refreshToken).Error
 }
 
 func (r *userRepository) DeleteUser(id uint) error {
@@ -62,6 +76,6 @@ func (r *userRepository) BeginTransaction() *gorm.DB {
 	return r.db.Begin()
 }
 
-func (r *userRepository) WithTransaction(tx *gorm.DB) ContentRepository {
-	return &contentRepository{db: tx}
+func (r *userRepository) WithTransaction(tx *gorm.DB) UserRepository {
+	return &userRepository{db: tx}
 }

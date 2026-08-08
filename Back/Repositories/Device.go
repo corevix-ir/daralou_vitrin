@@ -11,6 +11,7 @@ type DeviceRepository interface {
 	CreateDevice(*Models.Device) error
 	GetByIDDevice(id uint) (*Models.Device, error)
 	GetAllDevice() ([]Models.Device, error)
+	GetByUserID(userID uint) (*Models.Device, error)
 	UpdateDevice(id uint, updates map[string]interface{}) error
 	DeleteDevice(id uint) error
 
@@ -22,7 +23,7 @@ type DeviceRepository interface {
 
 	// Transaction methods
 	BeginTransaction() *gorm.DB
-	WithTransaction(tx *gorm.DB) ContentRepository
+	WithTransaction(tx *gorm.DB) DeviceRepository
 }
 
 type deviceRepository struct {
@@ -52,6 +53,15 @@ func (r *deviceRepository) GetAllDevice() ([]Models.Device, error) {
 	var devices []Models.Device
 	err := r.db.Order("created_at DESC").Find(&devices).Error
 	return devices, err
+}
+
+func (r *deviceRepository) GetByUserID(userID uint) (*Models.Device, error) {
+	var device Models.Device
+	err := r.db.Where("user_id = ?", userID).First(&device).Error
+	if err != nil {
+		return nil, err
+	}
+	return &device, nil
 }
 
 func (r *deviceRepository) UpdateDevice(id uint, updates map[string]interface{}) error {
@@ -88,6 +98,6 @@ func (r *deviceRepository) BeginTransaction() *gorm.DB {
 	return r.db.Begin()
 }
 
-func (r *deviceRepository) WithTransaction(tx *gorm.DB) ContentRepository {
-	return &contentRepository{db: tx}
+func (r *deviceRepository) WithTransaction(tx *gorm.DB) DeviceRepository {
+	return &deviceRepository{db: tx}
 }

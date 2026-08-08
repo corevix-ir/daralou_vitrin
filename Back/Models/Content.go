@@ -6,6 +6,7 @@ import "time"
 const (
 	ContentTypeNews = "news"
 	SourceDaralou   = "daralouWeb"
+	SourceLocal     = "daralouOperator"
 )
 
 type Content struct {
@@ -13,7 +14,7 @@ type Content struct {
 	ContentType  string `gorm:"not null"` // news, announcement, letter, reservation, ...
 	Title        string `gorm:"not null"`
 	Body         string
-	Summary      string
+	Summary      *string
 	MainImageURL string
 	ExternalURL  string
 	Source       string
