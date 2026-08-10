@@ -4,7 +4,7 @@ import (
 	"Back/DTO"
 	"Back/Service"
 	"Back/Validation"
-	"Back/middleware"
+	"Back/Middleware"
 	"net/http"
 	"strconv"
 

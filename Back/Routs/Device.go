@@ -2,7 +2,7 @@ package Routes
 
 import (
 	"Back/Controller"
-	"Back/middleware"
+	"Back/Middleware"
 
 	"github.com/labstack/echo/v4"
 )

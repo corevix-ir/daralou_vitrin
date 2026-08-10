@@ -10,7 +10,7 @@ import (
 	Services "Back/Service"
 	"Back/Validation"
 	_ "Back/docs" // مستندات تولیدشده توسط `swag init` - قبل از build باید تولید شده باشه
-	Mymiddleware "Back/middleware"
+	Mymiddleware "Back/Middleware"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger"

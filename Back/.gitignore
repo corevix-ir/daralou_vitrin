@@ -1,0 +1,66 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Go build output
+/bin/
+/build/
+/dist/
+
+# Go workspace
+go.work
+go.work.sum
+
+# Coverage
+coverage.out
+coverage.html
+*.coverprofile
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Air
+.air.toml
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Vendor (اگر vendor را داخل Git نمی‌خواهی)
+# vendor/
+
+# News directories - هرجا در پروژه باشند
+news/
+**/news/
