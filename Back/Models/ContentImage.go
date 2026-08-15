@@ -14,5 +14,5 @@ type ContentImage struct {
 }
 
 func (ContentImage) TableName() string {
-	return "content_image"
+	return "content_images"
 }

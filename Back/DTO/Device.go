@@ -7,7 +7,6 @@ import (
 
 type CreateDevice struct {
 	User       RegisterRequest `json:"user" validate:"required"`
-	UserID     uint            `json:"user_id" validate:"required"`
 	Name       string          `json:"name" validate:"required,min=5,max=50"`
 	Location   string          `json:"location" validate:"required,min=20,max=200"`
 	Section    string          `json:"section" validate:"omitempty"`

@@ -1108,8 +1108,7 @@ const docTemplate = `{
                 "location",
                 "mac_address",
                 "name",
-                "user",
-                "user_id"
+                "user"
             ],
             "properties": {
                 "config": {
@@ -1138,9 +1137,6 @@ const docTemplate = `{
                 },
                 "user": {
                     "$ref": "#/definitions/DTO.RegisterRequest"
-                },
-                "user_id": {
-                    "type": "integer"
                 }
             }
         },

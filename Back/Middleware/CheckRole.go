@@ -95,7 +95,7 @@ func (m *roleMiddleware) RequireDeviceRole() echo.MiddlewareFunc {
 
 // RequireAllRole - همه مجاز هستند
 func (m *roleMiddleware) RequireAllRole() echo.MiddlewareFunc {
-	return m.RequireRole(Models.RoleAdmin, Models.RoleOperator, Models.RoleUser)
+	return m.RequireRole(Models.RoleAdmin, Models.RoleOperator, Models.RoleUser, Models.RoleDevice)
 }
 
 // GetUserRole - استخراج نقش کاربر از context

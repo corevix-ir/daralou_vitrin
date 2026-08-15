@@ -49,12 +49,12 @@ type ContentInfo struct {
 }
 
 type UpdateContentRequest struct {
-	Title     *string    `json:"title" validate:"required,min=5,max=50"`
-	Body      *string    `json:"body" validate:"required,min=20,max=2000"`
+	Title     *string    `json:"title" validate:"omitempty,min=5,max=50"`
+	Body      *string    `json:"body" validate:"omitempty,min=20,max=2000"`
 	Summary   *string    `json:"summary" validate:"omitempty"`
-	Priority  *int       `json:"priority" validate:"required,min=1,max=3"`
-	MainImg   *string    `json:"main_img" validate:"required"`
-	ImgList   *[]string  `json:"img_list" validate:"required,min=1,max=100"`
+	Priority  *int       `json:"priority" validate:"omitempty,min=1,max=3"`
+	MainImg   *string    `json:"main_img" validate:"omitempty"`
+	ImgList   *[]string  `json:"img_list" validate:"omitempty,min=1,max=100"`
 	StartDate *time.Time `json:"start_date,omitempty"`
 	EndDate   *time.Time `json:"end_date,omitempty"`
 }

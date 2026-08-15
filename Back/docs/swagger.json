@@ -1102,8 +1102,7 @@
                 "location",
                 "mac_address",
                 "name",
-                "user",
-                "user_id"
+                "user"
             ],
             "properties": {
                 "config": {
@@ -1132,9 +1131,6 @@
                 },
                 "user": {
                     "$ref": "#/definitions/DTO.RegisterRequest"
-                },
-                "user_id": {
-                    "type": "integer"
                 }
             }
         },

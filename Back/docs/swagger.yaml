@@ -106,14 +106,11 @@ definitions:
         type: string
       user:
         $ref: '#/definitions/DTO.RegisterRequest'
-      user_id:
-        type: integer
     required:
     - location
     - mac_address
     - name
     - user
-    - user_id
     type: object
   DTO.DeviceList:
     properties:

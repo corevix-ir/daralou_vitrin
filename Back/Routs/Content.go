@@ -12,12 +12,12 @@ func RegisterContentRoutes(e *echo.Echo, controller *Controllers.ContentControll
 
 	// فقط دستگاه محتوای دستی خودش را می‌سازد و می‌بیند
 	group.GET("/vitrin", controller.GetVitrinList, roleMW.RequireDeviceRole())
-	group.GET("/local", controller.GetLocalContentList, roleMW.RequireDeviceRole())
+	group.GET("/local", controller.GetLocalContentList, roleMW.RequireAllRole())
 
 	// مدیریت محتوا از پنل ادمین/اپراتور
 	group.POST("", controller.CreateContent, roleMW.RequireOperatorRole())
-	group.GET("/scrap", controller.GetScrapContentList, roleMW.RequireOperatorRole())
-	group.GET("/:content_id", controller.GetDetailsContent, roleMW.RequireOperatorRole())
+	group.GET("/scrap", controller.GetScrapContentList, roleMW.RequireAllRole())
+	group.GET("/:content_id", controller.GetDetailsContent, roleMW.RequireAllRole())
 	group.PUT("/:id", controller.UpdateContent, roleMW.RequireOperatorRole())
 	group.DELETE("/:id", controller.DeleteContent, roleMW.RequireOperatorRole())
 }
