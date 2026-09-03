@@ -3,6 +3,7 @@ import '../config/app_config.dart';
 import '../constants/app_constants.dart';
 import 'interceptors/auth_interceptor.dart';
 import 'interceptors/error_interceptor.dart';
+import 'interceptors/logging_interceptor.dart';
 
 class CoreHttpClient {
   static final CoreHttpClient instance = CoreHttpClient._internal();
@@ -25,6 +26,7 @@ class CoreHttpClient {
 
     dio.interceptors.addAll([
       AuthInterceptor(),
+      LoggingInterceptor(),
       ErrorInterceptor(),
     ]);
   }

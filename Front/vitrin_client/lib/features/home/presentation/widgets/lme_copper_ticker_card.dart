@@ -8,20 +8,22 @@ class LmeCopperTickerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BentoCard(
+      backgroundImage: 'assets/copper.jpg',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'قیمت مس LME',
                 style: TextStyle(
-                  fontFamily: 'Vazirmatn',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.onSurfaceVariant,
+                  fontFamily: 'Peyda',
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.onSurface,
+                  shadows: [Shadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 6, offset: const Offset(0, 1))],
                 ),
               ),
               Icon(
@@ -31,25 +33,28 @@ class LmeCopperTickerCard extends StatelessWidget {
               ),
             ],
           ),
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 '\$9,450',
                 style: TextStyle(
                   fontFamily: 'JetBrains Mono',
-                  fontSize: 30,
+                  fontSize: 34,
                   fontWeight: FontWeight.bold,
                   color: AppColors.onSurface,
+                  shadows: [Shadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 6, offset: const Offset(0, 1))],
                 ),
               ),
               SizedBox(height: 2),
               Text(
                 'قیمت جهانی هر تن',
                 style: TextStyle(
-                  fontFamily: 'Vazirmatn',
-                  fontSize: 12,
-                  color: Colors.white54,
+                  fontFamily: 'Peyda',
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.onSurfaceVariant,
+                  shadows: [Shadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 5, offset: const Offset(0, 1))],
                 ),
               ),
             ],
@@ -61,7 +66,7 @@ class LmeCopperTickerCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: AppColors.emeraldGreen.withValues(alpha: 0.4)),
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.arrow_drop_up_rounded, color: AppColors.emeraldGreen, size: 20),
@@ -69,7 +74,7 @@ class LmeCopperTickerCard extends StatelessWidget {
                   '+2.1% 24h',
                   style: TextStyle(
                     fontFamily: 'JetBrains Mono',
-                    fontSize: 13,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppColors.emeraldGreen,
                   ),

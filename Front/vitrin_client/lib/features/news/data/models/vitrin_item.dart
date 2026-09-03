@@ -1,3 +1,5 @@
+import '../../../../core/config/app_config.dart';
+
 class VitrinItem {
   final int id;
   final String title;
@@ -17,7 +19,7 @@ class VitrinItem {
     return VitrinItem(
       id: (json['id'] as num?)?.toInt() ?? 0,
       title: json['title'] as String? ?? 'بدون عنوان',
-      mainImg: json['main_img'] as String? ?? '',
+      mainImg: AppConfig.resolveMediaUrl(json['main_img'] as String? ?? ''),
       createdAt: json['created_at'] as String? ?? '',
       isLocal: isLocal,
     );

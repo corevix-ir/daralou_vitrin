@@ -9,6 +9,7 @@ class SportsReservationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BentoCard(
+      backgroundImage: 'assets/sport.jpg',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -18,8 +19,12 @@ class SportsReservationCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.15),
+                  color: AppColors.surfaceContainerLow.withValues(alpha: 0.92),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.outlineVariant),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 8, offset: const Offset(0, 2)),
+                  ],
                 ),
                 child: const Icon(
                   Icons.sports_soccer_rounded,
@@ -28,36 +33,40 @@ class SportsReservationCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'خدمات رفاهی پرسنل',
                 style: TextStyle(
-                  fontFamily: 'Vazirmatn',
-                  fontSize: 13,
+                  fontFamily: 'Peyda',
+                  fontSize: 17,
                   color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.bold,
+                  shadows: [Shadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 5, offset: const Offset(0, 1))],
                 ),
               ),
             ],
           ),
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'رزرو ورزشی',
                 style: TextStyle(
-                  fontFamily: 'Vazirmatn',
-                  fontSize: 22,
+                  fontFamily: 'Peyda',
+                  fontSize: 30,
                   fontWeight: FontWeight.bold,
                   color: AppColors.onSurface,
+                  shadows: [Shadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 6, offset: const Offset(0, 1))],
                 ),
               ),
               SizedBox(height: 6),
               Text(
                 'رزرو نوبت‌های سالن ورزشی، استخر و زمین چمن مجموعه',
                 style: TextStyle(
-                  fontFamily: 'Vazirmatn',
-                  fontSize: 13,
+                  fontFamily: 'Peyda',
+                  fontSize: 19,
+                  fontWeight: FontWeight.w600,
                   color: AppColors.onSurfaceVariant,
+                  shadows: [Shadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 5, offset: const Offset(0, 1))],
                 ),
               ),
             ],
@@ -84,8 +93,8 @@ class SportsReservationCard extends StatelessWidget {
                   Text(
                     'رزرو نوبت',
                     style: TextStyle(
-                      fontFamily: 'Vazirmatn',
-                      fontSize: 15,
+                      fontFamily: 'Peyda',
+                      fontSize: 17,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

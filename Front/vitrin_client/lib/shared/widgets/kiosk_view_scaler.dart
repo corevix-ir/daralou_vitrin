@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'floating_assistive_ball.dart';
 
 /// A wrapper widget that enforces a fixed 1080x1920 Portrait Kiosk canvas
 /// and scales it smoothly using [FittedBox] to fit any laptop or desktop screen window.
@@ -32,7 +33,12 @@ class KioskViewScaler extends StatelessWidget {
               width: targetWidth,
               height: targetHeight,
               child: ClipRect(
-                child: child,
+                child: Stack(
+                  children: [
+                    child,
+                    FloatingAssistiveBall(canvasSize: Size(targetWidth, targetHeight)),
+                  ],
+                ),
               ),
             ),
           ),

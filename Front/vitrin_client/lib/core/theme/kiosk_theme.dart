@@ -1,20 +1,36 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
-class KioskTheme {
+abstract class KioskTheme {
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      scaffoldBackgroundColor: AppColors.background,
+      scaffoldBackgroundColor: AppColorsDark.background,
       colorScheme: const ColorScheme.dark(
-        surface: AppColors.background,
+        surface: AppColorsDark.background,
         primary: AppColors.primary,
         onPrimary: AppColors.onPrimary,
         secondary: AppColors.primaryFixed,
-        error: AppColors.errorRed,
+        error: AppColorsDark.errorRed,
       ),
-      fontFamily: 'Vazirmatn',
+      fontFamily: 'Peyda',
+    );
+  }
+
+  static ThemeData get lightTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      scaffoldBackgroundColor: AppColorsLight.background,
+      colorScheme: const ColorScheme.light(
+        surface: AppColorsLight.background,
+        primary: AppColors.primary,
+        onPrimary: AppColors.onPrimary,
+        secondary: AppColors.primaryFixed,
+        error: AppColorsLight.errorRed,
+      ),
+      fontFamily: 'Peyda',
     );
   }
 }

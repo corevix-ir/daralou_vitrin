@@ -1,30 +1,26 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../../../core/auth/auth_state.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/network/auth_token_storage.dart';
-import '../../../auth/presentation/widgets/login_dialog.dart';
 
 class RedesignedHeader extends StatefulWidget {
-  final VoidCallback? onReLogin;
-
-  const RedesignedHeader({super.key, this.onReLogin});
+  const RedesignedHeader({super.key});
 
   @override
   State<RedesignedHeader> createState() => _RedesignedHeaderState();
 }
 
 class _RedesignedHeaderState extends State<RedesignedHeader> {
-  final AuthTokenStorage _storage = AuthTokenStorage.instance;
+  final AuthState _authState = AuthState.instance;
   late Timer _timer;
-  
+
   DateTime _now = DateTime.now();
-  bool _isLoggedIn = false;
-  String _username = '';
 
   @override
   void initState() {
     super.initState();
-    _checkAuthStatus();
+    _authState.addListener(_onAuthChanged);
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) {
         setState(() => _now = DateTime.now());
@@ -34,19 +30,18 @@ class _RedesignedHeaderState extends State<RedesignedHeader> {
 
   @override
   void dispose() {
+    _authState.removeListener(_onAuthChanged);
     _timer.cancel();
     super.dispose();
   }
 
-  Future<void> _checkAuthStatus() async {
-    final loggedIn = await _storage.isLoggedIn();
-    final username = await _storage.getUsername() ?? '';
-    if (mounted) {
-      setState(() {
-        _isLoggedIn = loggedIn;
-        _username = username;
-      });
-    }
+  void _onAuthChanged() {
+    if (mounted) setState(() {});
+  }
+
+  String get _locationText {
+    final parts = [_authState.location, _authState.section].where((s) => s.isNotEmpty);
+    return parts.isEmpty ? AppConstants.kioskLocation : parts.join(' | ');
   }
 
   String _formatTime() {
@@ -75,90 +70,43 @@ class _RedesignedHeaderState extends State<RedesignedHeader> {
               Container(
                 width: 56,
                 height: 56,
-                decoration: const BoxDecoration(
-                  color: AppColors.logoCircleBackground,
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
                   shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.outlineVariant),
                 ),
-                child: const Icon(
-                  Icons.location_on_rounded,
-                  color: AppColors.primary,
-                  size: 30,
+                child: Image.asset(
+                  'assets/logo.png',
+                  fit: BoxFit.contain,
                 ),
               ),
               const SizedBox(width: 16),
-              const Column(
+              Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'شرکت مس درآلو',
                     style: TextStyle(
-                      fontFamily: 'Vazirmatn',
-                      fontSize: 22,
+                      fontFamily: 'Peyda',
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: AppColors.onSurface,
                     ),
                   ),
                   SizedBox(height: 2),
                   Text(
-                    'ساختمان مرکزی | لابی اصلی',
+                    _locationText,
                     style: TextStyle(
-                      fontFamily: 'Vazirmatn',
-                      fontSize: 13,
+                      fontFamily: 'Peyda',
+                      fontSize: 16,
                       color: AppColors.onSurfaceVariant,
                     ),
                   ),
                 ],
               ),
             ],
-          ),
-
-          // Center: Device Login / Status Button
-          InkWell(
-            onTap: () {
-              LoginDialog.show(
-                context,
-                onLoginSuccess: () {
-                  _checkAuthStatus();
-                  widget.onReLogin?.call();
-                },
-              );
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: _isLoggedIn
-                    ? AppColors.emeraldGreenBg
-                    : AppColors.surfaceContainerHigh,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: _isLoggedIn
-                      ? AppColors.emeraldGreen
-                      : AppColors.primary.withValues(alpha: 0.5),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    _isLoggedIn ? Icons.check_circle_rounded : Icons.login_rounded,
-                    size: 20,
-                    color: _isLoggedIn ? AppColors.emeraldGreen : AppColors.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _isLoggedIn ? 'دستگاه فعال ($_username)' : 'ورود دستگاه',
-                    style: TextStyle(
-                      fontFamily: 'Vazirmatn',
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: _isLoggedIn ? Colors.white : AppColors.primary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ),
 
           // Left Side: 2-Line Time, Weather & Date Info
@@ -173,21 +121,21 @@ class _RedesignedHeaderState extends State<RedesignedHeader> {
                     _formatTime(),
                     style: const TextStyle(
                       fontFamily: 'JetBrains Mono',
-                      fontSize: 22,
+                      fontSize: 25,
                       fontWeight: FontWeight.bold,
                       color: AppColors.primary,
                     ),
                   ),
                   const SizedBox(width: 10),
-                  const Text('•', style: TextStyle(color: Colors.white38)),
+                  Text('•', style: TextStyle(color: AppColors.onSurfaceVariant.withValues(alpha: 0.6))),
                   const SizedBox(width: 10),
-                  const Icon(Icons.wb_sunny_rounded, color: Colors.amber, size: 20),
+                  const Icon(Icons.wb_sunny_rounded, color: Colors.amber, size: 22),
                   const SizedBox(width: 6),
-                  const Text(
+                  Text(
                     '28°C',
                     style: TextStyle(
                       fontFamily: 'JetBrains Mono',
-                      fontSize: 16,
+                      fontSize: 19,
                       fontWeight: FontWeight.w600,
                       color: AppColors.onSurface,
                     ),
@@ -195,11 +143,11 @@ class _RedesignedHeaderState extends State<RedesignedHeader> {
                 ],
               ),
               const SizedBox(height: 4),
-              const Text(
+              Text(
                 'شنبه ۱۸ مرداد ۱۴۰۵',
                 style: TextStyle(
-                  fontFamily: 'Vazirmatn',
-                  fontSize: 13,
+                  fontFamily: 'Peyda',
+                  fontSize: 16,
                   color: AppColors.onSurfaceVariant,
                 ),
               ),

@@ -32,8 +32,8 @@ class _NewsListScreenState extends State<NewsListScreen> {
     if (mounted) {
       setState(() {
         _currentPage = page;
-        _newsItems = response.items;
-        _totalCount = response.total;
+        _newsItems = response?.items ?? const [];
+        _totalCount = response?.total ?? 0;
         _isLoading = false;
       });
     }
@@ -51,7 +51,7 @@ class _NewsListScreenState extends State<NewsListScreen> {
             // Top Header Bar with Back Button
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.surfaceContainerLow,
                 border: Border(
                   bottom: BorderSide(color: AppColors.outlineVariant, width: 1),
@@ -60,14 +60,14 @@ class _NewsListScreenState extends State<NewsListScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.newspaper_rounded, color: AppColors.primary, size: 28),
+                      const Icon(Icons.newspaper_rounded, color: AppColors.primary, size: 28),
                       SizedBox(width: 12),
                       Text(
                         'آرشیو اخبار و اطلاعیه‌های شرکت مس درآلو',
                         style: TextStyle(
-                          fontFamily: 'Vazirmatn',
+                          fontFamily: 'Peyda',
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: AppColors.onSurface,
@@ -78,7 +78,7 @@ class _NewsListScreenState extends State<NewsListScreen> {
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.onSurface,
-                      side: const BorderSide(color: AppColors.outlineVariant),
+                      side: BorderSide(color: AppColors.outlineVariant),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -89,7 +89,7 @@ class _NewsListScreenState extends State<NewsListScreen> {
                     label: const Text(
                       'بازگشت به صفحه اصلی',
                       style: TextStyle(
-                        fontFamily: 'Vazirmatn',
+                        fontFamily: 'Peyda',
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
@@ -106,13 +106,13 @@ class _NewsListScreenState extends State<NewsListScreen> {
                       child: CircularProgressIndicator(color: AppColors.primary),
                     )
                   : _newsItems.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Text(
                             'هیچ خبری برای نمایش وجود ندارد.',
                             style: TextStyle(
-                              fontFamily: 'Vazirmatn',
+                              fontFamily: 'Peyda',
                               fontSize: 16,
-                              color: Colors.white54,
+                              color: AppColors.onSurfaceVariant,
                             ),
                           ),
                         )
@@ -141,10 +141,10 @@ class _NewsListScreenState extends State<NewsListScreen> {
                                       errorBuilder: (context, error, stackTrace) {
                                         return Container(
                                           color: AppColors.surfaceContainerHigh,
-                                          child: const Icon(
+                                          child: Icon(
                                             Icons.image_not_supported_rounded,
                                             size: 48,
-                                            color: Colors.white24,
+                                            color: AppColors.onSurfaceVariant,
                                           ),
                                         );
                                       },
@@ -178,7 +178,7 @@ class _NewsListScreenState extends State<NewsListScreen> {
                                             maxLines: 2,
                                             overflow: TextOverflow.ellipsis,
                                             style: const TextStyle(
-                                              fontFamily: 'Vazirmatn',
+                                              fontFamily: 'Peyda',
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,
                                               color: Colors.white,
@@ -197,8 +197,8 @@ class _NewsListScreenState extends State<NewsListScreen> {
                                                 const SizedBox(width: 6),
                                                 Text(
                                                   item.createdAt,
-                                                  style: const TextStyle(
-                                                    fontFamily: 'Vazirmatn',
+                                                  style: TextStyle(
+                                                    fontFamily: 'Peyda',
                                                     fontSize: 12,
                                                     color: AppColors.onSurfaceVariant,
                                                   ),
@@ -220,7 +220,7 @@ class _NewsListScreenState extends State<NewsListScreen> {
             // Pagination Control Bar
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.surfaceContainerLow,
                 border: Border(
                   top: BorderSide(color: AppColors.outlineVariant, width: 1),
@@ -233,7 +233,7 @@ class _NewsListScreenState extends State<NewsListScreen> {
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.surfaceContainerHigh,
-                      foregroundColor: Colors.white,
+                      foregroundColor: AppColors.onSurface,
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -245,7 +245,7 @@ class _NewsListScreenState extends State<NewsListScreen> {
                     icon: const Icon(Icons.chevron_right_rounded, size: 22),
                     label: const Text(
                       'صفحه قبلی',
-                      style: TextStyle(fontFamily: 'Vazirmatn', fontWeight: FontWeight.bold),
+                      style: TextStyle(fontFamily: 'Peyda', fontWeight: FontWeight.bold),
                     ),
                   ),
 
@@ -262,7 +262,7 @@ class _NewsListScreenState extends State<NewsListScreen> {
                     child: Text(
                       'صفحه $_currentPage از $_totalPages',
                       style: const TextStyle(
-                        fontFamily: 'Vazirmatn',
+                        fontFamily: 'Peyda',
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: AppColors.primary,
@@ -276,7 +276,7 @@ class _NewsListScreenState extends State<NewsListScreen> {
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.surfaceContainerHigh,
-                      foregroundColor: Colors.white,
+                      foregroundColor: AppColors.onSurface,
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -288,7 +288,7 @@ class _NewsListScreenState extends State<NewsListScreen> {
                     icon: const Icon(Icons.chevron_left_rounded, size: 22),
                     label: const Text(
                       'صفحه بعدی',
-                      style: TextStyle(fontFamily: 'Vazirmatn', fontWeight: FontWeight.bold),
+                      style: TextStyle(fontFamily: 'Peyda', fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],

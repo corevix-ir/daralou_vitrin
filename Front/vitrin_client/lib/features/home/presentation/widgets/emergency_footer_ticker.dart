@@ -22,8 +22,8 @@ class EmergencyFooterTicker extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontFamily: 'Vazirmatn',
-                fontSize: 14,
+                fontFamily: 'Peyda',
+                fontSize: 17,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),

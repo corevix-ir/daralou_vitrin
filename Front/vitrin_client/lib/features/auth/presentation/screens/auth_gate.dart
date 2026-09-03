@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../core/network/auth_token_storage.dart';
+import '../../../../core/auth/auth_state.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../home/presentation/screens/home_kiosk_screen.dart';
 import 'login_screen.dart';
@@ -12,44 +12,47 @@ class AuthGate extends StatefulWidget {
 }
 
 class _AuthGateState extends State<AuthGate> {
-  final AuthTokenStorage _storage = AuthTokenStorage.instance;
+  final AuthState _authState = AuthState.instance;
 
   bool _isChecking = true;
-  bool _isLoggedIn = false;
 
   @override
   void initState() {
     super.initState();
-    _checkAuthStatus();
+    _authState.addListener(_onAuthChanged);
+    _bootstrap();
   }
 
-  Future<void> _checkAuthStatus() async {
-    final loggedIn = await _storage.isLoggedIn();
+  @override
+  void dispose() {
+    _authState.removeListener(_onAuthChanged);
+    super.dispose();
+  }
+
+  Future<void> _bootstrap() async {
+    await _authState.refresh();
     if (mounted) {
-      setState(() {
-        _isLoggedIn = loggedIn;
-        _isChecking = false;
-      });
+      setState(() => _isChecking = false);
     }
   }
 
-  void _handleLoginSuccess() {
-    setState(() => _isLoggedIn = true);
+  void _onAuthChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     if (_isChecking) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: AppColors.background,
-        body: Center(
+        body: const Center(
           child: CircularProgressIndicator(color: AppColors.primary),
         ),
       );
     }
 
-    if (!_isLoggedIn) {
-      return LoginScreen(onLoginSuccess: _handleLoginSuccess);
+    if (!_authState.isLoggedIn) {
+      return LoginScreen(onLoginSuccess: _authState.refresh);
     }
 
     return const HomeKioskScreen();

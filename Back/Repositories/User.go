@@ -10,6 +10,7 @@ type UserRepository interface {
 	// User
 	CreateUser(user *Models.User) error
 	GetByIDUser(id uint) (*Models.User, error)
+	GetByIDUserWithDevice(id uint) (*Models.User, error)
 	GetByUsername(username string) (*Models.User, error)
 	GetAllUser() ([]Models.User, error)
 	UpdateUser(id uint, updates map[string]interface{}) error
@@ -38,6 +39,15 @@ func (r *userRepository) CreateUser(user *Models.User) error {
 func (r *userRepository) GetByIDUser(id uint) (*Models.User, error) {
 	var user Models.User
 	err := r.db.First(&user, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *userRepository) GetByIDUserWithDevice(id uint) (*Models.User, error) {
+	var user Models.User
+	err := r.db.Preload("Device").First(&user, id).Error
 	if err != nil {
 		return nil, err
 	}

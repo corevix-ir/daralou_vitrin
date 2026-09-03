@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 
@@ -9,6 +10,13 @@ class BentoCard extends StatelessWidget {
   final double? width;
   final double? height;
 
+  /// Optional illustration shown behind the card content, blurred and
+  /// washed with the card's own surface color so it reads as a faint
+  /// tinted backdrop rather than a competing image — keeps flat cards
+  /// (especially in the light theme) from looking like plain white boxes
+  /// without ever fighting the text on top for legibility.
+  final String? backgroundImage;
+
   const BentoCard({
     super.key,
     required this.child,
@@ -17,23 +25,53 @@ class BentoCard extends StatelessWidget {
     this.onTap,
     this.width,
     this.height,
+    this.backgroundImage,
   });
 
   @override
   Widget build(BuildContext context) {
+    final resolvedBackground = backgroundColor ?? AppColors.surfaceContainerLow;
+    final image = backgroundImage;
+
+    final Widget contentPadding = Padding(
+      padding: padding ?? const EdgeInsets.all(20),
+      child: child,
+    );
+
+    final Widget innerContent = image == null
+        ? contentPadding
+        : Stack(
+            children: [
+              Positioned.fill(
+                child: ImageFiltered(
+                  imageFilter: ImageFilter.blur(sigmaX: 4, sigmaY: 4, tileMode: TileMode.decal),
+                  child: Image.asset(image, fit: BoxFit.cover),
+                ),
+              ),
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(color: resolvedBackground.withValues(alpha: 0.46)),
+                ),
+              ),
+              contentPadding,
+            ],
+          );
+
     final cardWidget = Container(
       width: width,
       height: height,
-      padding: padding ?? const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: backgroundColor ?? AppColors.surfaceContainerLow,
+        color: image == null ? resolvedBackground : null,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: AppColors.outlineVariant,
           width: 1,
         ),
       ),
-      child: child,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(15),
+        child: innerContent,
+      ),
     );
 
     if (onTap != null) {

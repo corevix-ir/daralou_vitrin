@@ -38,4 +38,6 @@ type ProfileResponse struct {
 	Username string          `json:"username"`
 	Name     string          `json:"name"`
 	Role     Models.UserRole `json:"role"`
+	Location string          `json:"location,omitempty"`
+	Section  string          `json:"section,omitempty"`
 }

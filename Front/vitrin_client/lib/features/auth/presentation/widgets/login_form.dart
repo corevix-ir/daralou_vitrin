@@ -73,14 +73,14 @@ class _LoginFormState extends State<LoginForm> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
+              Row(
                 children: [
-                  Icon(Icons.admin_panel_settings_rounded, color: AppColors.primary, size: 28),
-                  SizedBox(width: 12),
+                  const Icon(Icons.admin_panel_settings_rounded, color: AppColors.primary, size: 28),
+                  const SizedBox(width: 12),
                   Text(
                     'ورود به سیستم کیوسک',
                     style: TextStyle(
-                      fontFamily: 'Vazirmatn',
+                      fontFamily: 'Peyda',
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: AppColors.onSurface,
@@ -90,16 +90,16 @@ class _LoginFormState extends State<LoginForm> {
               ),
               if (widget.onCancel != null)
                 IconButton(
-                  icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                  icon: Icon(Icons.close_rounded, color: AppColors.onSurfaceVariant),
                   onPressed: widget.onCancel,
                 ),
             ],
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'برای برقراری ارتباط فعال دستگاه با سرور، نام کاربری و رمز عبور را وارد کنید.',
             style: TextStyle(
-              fontFamily: 'Vazirmatn',
+              fontFamily: 'Peyda',
               fontSize: 14,
               color: AppColors.onSurfaceVariant,
             ),
@@ -107,10 +107,10 @@ class _LoginFormState extends State<LoginForm> {
           const SizedBox(height: 24),
           TextField(
             controller: _usernameController,
-            style: const TextStyle(color: Colors.white, fontFamily: 'Vazirmatn'),
+            style: TextStyle(color: AppColors.inputText, fontFamily: 'Peyda'),
             decoration: InputDecoration(
               labelText: 'نام کاربری',
-              labelStyle: const TextStyle(color: Colors.white70),
+              labelStyle: TextStyle(color: AppColors.inputHint),
               prefixIcon: const Icon(Icons.person_outline_rounded, color: AppColors.primary),
               filled: true,
               fillColor: AppColors.surfaceContainer,
@@ -125,10 +125,10 @@ class _LoginFormState extends State<LoginForm> {
             controller: _passwordController,
             obscureText: true,
             onSubmitted: (_) => _handleLogin(),
-            style: const TextStyle(color: Colors.white, fontFamily: 'Vazirmatn'),
+            style: TextStyle(color: AppColors.inputText, fontFamily: 'Peyda'),
             decoration: InputDecoration(
               labelText: 'رمز عبور',
-              labelStyle: const TextStyle(color: Colors.white70),
+              labelStyle: TextStyle(color: AppColors.inputHint),
               prefixIcon: const Icon(Icons.lock_outline_rounded, color: AppColors.primary),
               filled: true,
               fillColor: AppColors.surfaceContainer,

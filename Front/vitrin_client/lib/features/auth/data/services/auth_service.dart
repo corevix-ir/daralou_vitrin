@@ -3,6 +3,7 @@ import '../../../../core/network/core_http_client.dart';
 import '../../../../core/network/auth_token_storage.dart';
 import '../models/login_request.dart';
 import '../models/login_response.dart';
+import '../models/profile_response.dart';
 
 class AuthService {
   final CoreHttpClient _client = CoreHttpClient.instance;
@@ -43,5 +44,18 @@ class AuthService {
 
   Future<String?> getUsername() async {
     return await _storage.getUsername();
+  }
+
+  Future<ProfileResponse?> getProfile() async {
+    try {
+      final response = await _client.dio.get('/auth/profile');
+      if (response.statusCode == 200 && response.data != null) {
+        return ProfileResponse.fromJson(response.data);
+      }
+    } on DioException catch (_) {
+      // Network hiccup or expired session - caller just keeps whatever
+      // location/section it already had.
+    }
+    return null;
   }
 }

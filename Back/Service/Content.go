@@ -5,6 +5,8 @@ import (
 	"Back/Models"
 	"Back/Repositories"
 	"errors"
+	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -22,12 +24,14 @@ type ContentService interface {
 }
 
 type contentService struct {
-	Repository Repositories.ContentRepository
+	Repository    Repositories.ContentRepository
+	baseImagePath string
 }
 
-func NewContentService(contentRepo Repositories.ContentRepository) ContentService {
+func NewContentService(contentRepo Repositories.ContentRepository, baseImagePath string) ContentService {
 	return &contentService{
-		Repository: contentRepo,
+		Repository:    contentRepo,
+		baseImagePath: baseImagePath,
 	}
 }
 
@@ -99,14 +103,14 @@ func (s *contentService) GetVitrinList(deviceID uint) (DTO.VitrinContentList, er
 	if err != nil {
 		return result, errors.New("خطا در دریافت اخبار اسکرپ شده: " + err.Error())
 	}
-	result.Scrap = toSummaryList(scrapContents)
+	result.Scrap = s.toSummaryList(scrapContents)
 
 	// محتوای اختصاصی دستگاه با priority=1
 	localContents, err1 := s.Repository.GetContentsByDeviceAndPriority(deviceID, 1)
 	if err1 != nil {
 		return result, errors.New("خطا در دریافت محتوای اختصاصی دستگاه: " + err1.Error())
 	}
-	result.Local = toSummaryList(localContents)
+	result.Local = s.toSummaryList(localContents)
 
 	return result, nil
 }
@@ -123,7 +127,7 @@ func (s *contentService) GetScrapContentList(page, size int) (DTO.ContentList, e
 	if err != nil {
 		return result, errors.New("خطا در شمارش لیست اخبار: " + err.Error())
 	}
-	result.SummaryContent = toSummaryList(contents)
+	result.SummaryContent = s.toSummaryList(contents)
 	result.Total = total
 	result.Page = page
 	result.Size = size
@@ -142,7 +146,7 @@ func (s *contentService) GetLocalContentList(deviceID uint, page, size int) (DTO
 	if err != nil {
 		return result, errors.New("خطا در شمارش محتوای دستگاه: " + err.Error())
 	}
-	result.SummaryContent = toSummaryList(contents)
+	result.SummaryContent = s.toSummaryList(contents)
 	result.Total = total
 	result.Page = page
 	result.Size = size
@@ -175,7 +179,7 @@ func (s *contentService) GetDetailsContent(contentID, deviceID uint) (DTO.Conten
 
 	imgUrls := make([]string, len(images))
 	for i, img := range images {
-		imgUrls[i] = img.ImageURL
+		imgUrls[i] = s.toPublicImageURL(img.ImageURL)
 	}
 
 	summary := ""
@@ -189,7 +193,7 @@ func (s *contentService) GetDetailsContent(contentID, deviceID uint) (DTO.Conten
 		Title:        content.Title,
 		Body:         content.Body,
 		Summary:      summary,
-		MainImageURL: content.MainImageURL,
+		MainImageURL: s.toPublicImageURL(content.MainImageURL),
 		ExtraImgList: imgUrls,
 		ExternalURL:  content.ExternalURL,
 		Source:       content.Source,
@@ -330,16 +334,36 @@ func paginate(page, size int) (offset, limit int) {
 	return (page - 1) * size, size
 }
 
-func toSummaryList(contents []Models.Content) []DTO.SummaryContent {
+func (s *contentService) toSummaryList(contents []Models.Content) []DTO.SummaryContent {
 	list := make([]DTO.SummaryContent, len(contents))
 	for i, c := range contents {
 		list[i] = DTO.SummaryContent{
 			ID:        c.ID,
 			Title:     c.Title,
 			Summary:   c.Summary,
-			MainImg:   c.MainImageURL,
+			MainImg:   s.toPublicImageURL(c.MainImageURL),
 			CreatedAt: c.CreatedAt,
 		}
 	}
 	return list
+}
+
+// toPublicImageURL کند مسیر ذخیره‌شده در دیتابیس (چه مسیر مطلق فایل‌سیستم قدیمی،
+// چه مسیر نسبی) را به یک URL قابل‌دسترس از طریق /static تبدیل می‌کند. بدون این
+// تبدیل، فرانت مسیر خام دیسک سرور را می‌گرفت که هیچ‌وقت روی HTTP قابل سرو نیست.
+func (s *contentService) toPublicImageURL(stored string) string {
+	if stored == "" {
+		return ""
+	}
+	if strings.HasPrefix(stored, "http://") || strings.HasPrefix(stored, "https://") || strings.HasPrefix(stored, "/static/") {
+		return stored
+	}
+
+	rel := stored
+	if s.baseImagePath != "" && strings.HasPrefix(stored, s.baseImagePath) {
+		rel = strings.TrimPrefix(stored, s.baseImagePath)
+	}
+	rel = strings.TrimPrefix(filepath.ToSlash(rel), "/")
+
+	return "/static/" + rel
 }

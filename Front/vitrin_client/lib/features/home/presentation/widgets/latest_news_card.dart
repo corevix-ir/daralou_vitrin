@@ -14,6 +14,10 @@ class LatestNewsCard extends StatefulWidget {
 }
 
 class _LatestNewsCardState extends State<LatestNewsCard> {
+  // Kiosk display: nothing ever triggers a manual refresh, so this card has
+  // to notice new scraped content on its own while it stays on screen.
+  static const _pollInterval = Duration(minutes: 2);
+
   final VitrinNewsService _newsService = VitrinNewsService();
   final PageController _pageController = PageController();
 
@@ -21,30 +25,64 @@ class _LatestNewsCardState extends State<LatestNewsCard> {
   bool _isLoading = true;
   int _currentIndex = 0;
   Timer? _timer;
+  Timer? _pollTimer;
 
   @override
   void initState() {
     super.initState();
     _loadLatestNews();
+    _pollTimer = Timer.periodic(_pollInterval, (_) => _loadLatestNews(silent: true));
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _pollTimer?.cancel();
     _pageController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadLatestNews() async {
-    setState(() => _isLoading = true);
+  Future<void> _loadLatestNews({bool silent = false}) async {
+    if (!silent) setState(() => _isLoading = true);
     final response = await _newsService.getScrapNews(page: 1, size: 3);
-    if (mounted) {
-      setState(() {
-        _items = response.items.take(3).toList();
-        _isLoading = false;
-      });
+    if (!mounted) return;
+
+    if (response == null) {
+      // Request failed (network hiccup, backend restart, timeout...) - keep
+      // whatever is already on screen rather than wiping a working
+      // slideshow because of one bad poll. Only clear the spinner so the
+      // very first load doesn't hang forever.
+      if (!silent) setState(() => _isLoading = false);
+      return;
+    }
+
+    final items = response.items.take(3).toList();
+    // Silent polls keep whatever the visitor is currently looking at unless
+    // the content actually changed - otherwise every 2 minutes would jump
+    // the slideshow back to the first slide for no visible reason.
+    final changed = !_sameItems(_items, items);
+    setState(() {
+      _items = items;
+      _isLoading = false;
+    });
+
+    if (changed) {
+      _currentIndex = 0;
+      if (_pageController.hasClients) {
+        _pageController.jumpToPage(0);
+      }
+      _startAutoSlide();
+    } else if (!silent) {
       _startAutoSlide();
     }
+  }
+
+  bool _sameItems(List<VitrinItem> a, List<VitrinItem> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i].id != b[i].id) return false;
+    }
+    return true;
   }
 
   void _startAutoSlide() {
@@ -84,10 +122,10 @@ class _LatestNewsCardState extends State<LatestNewsCard> {
                 child: CircularProgressIndicator(color: AppColors.primary),
               )
             else if (_items.isEmpty)
-              const Center(
+              Center(
                 child: Text(
                   'خبری یافت نشد',
-                  style: TextStyle(fontFamily: 'Vazirmatn', color: Colors.white54),
+                  style: TextStyle(fontFamily: 'Peyda', color: AppColors.onSurfaceVariant),
                 ),
               )
             else
@@ -95,6 +133,9 @@ class _LatestNewsCardState extends State<LatestNewsCard> {
                 controller: _pageController,
                 onPageChanged: (index) {
                   setState(() => _currentIndex = index);
+                  // A manual swipe shouldn't get immediately overridden by
+                  // whatever's left of the previous auto-advance countdown.
+                  _startAutoSlide();
                 },
                 itemCount: _items.length,
                 itemBuilder: (context, index) {
@@ -109,10 +150,10 @@ class _LatestNewsCardState extends State<LatestNewsCard> {
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
                             color: AppColors.surfaceContainerHigh,
-                            child: const Icon(
+                            child: Icon(
                               Icons.newspaper_rounded,
                               size: 40,
-                              color: Colors.white24,
+                              color: AppColors.onSurfaceVariant,
                             ),
                           );
                         },
@@ -153,8 +194,8 @@ class _LatestNewsCardState extends State<LatestNewsCard> {
                                   child: const Text(
                                     'آخرین اخبار',
                                     style: TextStyle(
-                                      fontFamily: 'Vazirmatn',
-                                      fontSize: 11,
+                                      fontFamily: 'Peyda',
+                                      fontSize: 13,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.onPrimary,
                                     ),
@@ -189,8 +230,8 @@ class _LatestNewsCardState extends State<LatestNewsCard> {
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
-                                    fontFamily: 'Vazirmatn',
-                                    fontSize: 14,
+                                    fontFamily: 'Peyda',
+                                    fontSize: 17,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
                                     height: 1.3,
@@ -202,8 +243,8 @@ class _LatestNewsCardState extends State<LatestNewsCard> {
                                     Text(
                                       'نمایش بیشتر',
                                       style: TextStyle(
-                                        fontFamily: 'Vazirmatn',
-                                        fontSize: 12,
+                                        fontFamily: 'Peyda',
+                                        fontSize: 15,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.primary,
                                       ),

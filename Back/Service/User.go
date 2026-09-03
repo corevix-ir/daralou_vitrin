@@ -136,7 +136,7 @@ func (s *authService) Logout(userID uint) error {
 
 func (s *authService) Profile(ID uint) (*DTO.ProfileResponse, error) {
 
-	user, err := s.Repository.GetByIDUser(ID)
+	user, err := s.Repository.GetByIDUserWithDevice(ID)
 	if err != nil {
 		return nil, errors.New("کاربر پیدا نشد")
 	}
@@ -148,6 +148,12 @@ func (s *authService) Profile(ID uint) (*DTO.ProfileResponse, error) {
 		Role:     user.Role,
 		IsActive: user.IsActive,
 		Name:     user.FullName,
+	}
+
+	// کاربرهای device به یک دستگاه (محل/بخش نصب) متصل هستند
+	if user.Device != nil {
+		employeeResponse.Location = user.Device.Location
+		employeeResponse.Section = user.Device.Section
 	}
 
 	return employeeResponse, nil

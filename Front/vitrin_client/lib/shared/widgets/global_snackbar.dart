@@ -24,6 +24,7 @@ class GlobalSnackBar {
       message: message,
       icon: Icons.info_outline_rounded,
       backgroundColor: AppColors.surfaceContainerHigh,
+      foregroundColor: AppColors.onSurface,
     );
   }
 
@@ -31,22 +32,23 @@ class GlobalSnackBar {
     required String message,
     required IconData icon,
     required Color backgroundColor,
+    Color foregroundColor = Colors.white,
   }) {
     rootScaffoldMessengerKey.currentState?.removeCurrentSnackBar();
     rootScaffoldMessengerKey.currentState?.showSnackBar(
       SnackBar(
         content: Row(
           children: [
-            Icon(icon, color: Colors.white, size: 26),
+            Icon(icon, color: foregroundColor, size: 26),
             const SizedBox(width: 14),
             Expanded(
               child: Text(
                 message,
-                style: const TextStyle(
-                  fontFamily: 'Vazirmatn',
-                  fontSize: 15,
+                style: TextStyle(
+                  fontFamily: 'Peyda',
+                  fontSize: 17,
                   fontWeight: FontWeight.w500,
-                  color: Colors.white,
+                  color: foregroundColor,
                 ),
               ),
             ),

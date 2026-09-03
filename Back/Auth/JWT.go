@@ -20,6 +20,8 @@ type jwtService struct {
 	accessSecret  string
 	refreshSecret string
 	issuer        string
+	accessTTL     time.Duration
+	refreshTTL    time.Duration
 }
 
 type AccessTokenDetails struct {
@@ -44,11 +46,13 @@ type TokenClaims struct {
 
 // ایجاد سرویس جدید JWT
 
-func NewJWTService(accessSecret, refreshSecret, issuer string) JWTService {
+func NewJWTService(accessSecret, refreshSecret, issuer string, accessTTL, refreshTTL time.Duration) JWTService {
 	return &jwtService{
 		accessSecret:  accessSecret,
 		refreshSecret: refreshSecret,
 		issuer:        issuer,
+		accessTTL:     accessTTL,
+		refreshTTL:    refreshTTL,
 	}
 }
 
@@ -56,8 +60,8 @@ func NewJWTService(accessSecret, refreshSecret, issuer string) JWTService {
 
 func (j *jwtService) GenerateAccessTokens(userID uint) (*AccessTokenDetails, error) {
 	td := &AccessTokenDetails{
-		AtExpires:  time.Now().Add(time.Minute * 15).Unix(), // توکن دسترسی 15 دقیقه اعتبار دارد
-		AccessUUID: generateUUID(),                          // باید تابع generateUUID() را پیاده‌سازی کنید
+		AtExpires:  time.Now().Add(j.accessTTL).Unix(), // مدت اعتبار از ACCESS_TOKEN_TTL در .env می‌آید
+		AccessUUID: generateUUID(),                     // باید تابع generateUUID() را پیاده‌سازی کنید
 	}
 
 	// ساخت توکن دسترسی
@@ -83,7 +87,7 @@ func (j *jwtService) GenerateAccessTokens(userID uint) (*AccessTokenDetails, err
 
 func (j *jwtService) GenerateRefreshTokens(userID uint) (*RefreshTokenDetails, error) {
 	td := &RefreshTokenDetails{
-		RtExpires:   time.Now().Add(time.Hour * 24 * 7).Unix(), // توکن تازه‌سازی یک هفته اعتبار دارد
+		RtExpires:   time.Now().Add(j.refreshTTL).Unix(), // مدت اعتبار از REFRESH_TOKEN_TTL در .env می‌آید
 		RefreshUUID: generateUUID(),
 	}
 

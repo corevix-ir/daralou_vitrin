@@ -12,4 +12,8 @@ abstract class AppConstants {
   static const String keyRefreshToken = 'kiosk_refresh_token';
   static const String keyIsLoggedIn = 'kiosk_is_logged_in';
   static const String keyUsername = 'kiosk_username';
+
+  // Password gate for the admin settings panel (client-side only for now,
+  // there is no backend endpoint for it yet). Change this value to rotate it.
+  static const String adminPanelPassword = '1010';
 }

@@ -12,37 +12,74 @@ class HeroNewsCarousel extends StatefulWidget {
 }
 
 class _HeroNewsCarouselState extends State<HeroNewsCarousel> {
+  // Kiosk display: nothing ever triggers a manual refresh, so the carousel
+  // has to notice new scraped content on its own while it stays on screen.
+  static const _pollInterval = Duration(minutes: 2);
+
   final VitrinNewsService _newsService = VitrinNewsService();
   final PageController _pageController = PageController();
-  
+
   List<VitrinItem> _items = [];
   bool _isLoading = true;
   int _currentIndex = 0;
   Timer? _timer;
+  Timer? _pollTimer;
 
   @override
   void initState() {
     super.initState();
     _loadNews();
+    _pollTimer = Timer.periodic(_pollInterval, (_) => _loadNews(silent: true));
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _pollTimer?.cancel();
     _pageController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadNews() async {
-    setState(() => _isLoading = true);
+  Future<void> _loadNews({bool silent = false}) async {
+    if (!silent) setState(() => _isLoading = true);
     final items = await _newsService.getVitrinContents();
-    if (mounted) {
-      setState(() {
-        _items = items;
-        _isLoading = false;
-      });
+    if (!mounted) return;
+
+    if (items == null) {
+      // Request failed (network hiccup, backend restart, timeout...) - keep
+      // whatever is already on screen rather than wiping a working
+      // slideshow because of one bad poll. Only clear the spinner so the
+      // very first load doesn't hang forever.
+      if (!silent) setState(() => _isLoading = false);
+      return;
+    }
+
+    // Silent polls keep whatever the visitor is currently looking at unless
+    // the content actually changed - otherwise every 2 minutes would jump
+    // the slideshow back to the first slide for no visible reason.
+    final changed = !_sameItems(_items, items);
+    setState(() {
+      _items = items;
+      _isLoading = false;
+    });
+
+    if (changed) {
+      _currentIndex = 0;
+      if (_pageController.hasClients) {
+        _pageController.jumpToPage(0);
+      }
+      _startAutoPlay();
+    } else if (!silent) {
       _startAutoPlay();
     }
+  }
+
+  bool _sameItems(List<VitrinItem> a, List<VitrinItem> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i].id != b[i].id) return false;
+    }
+    return true;
   }
 
   void _startAutoPlay() {
@@ -82,10 +119,10 @@ class _HeroNewsCarouselState extends State<HeroNewsCarousel> {
           color: AppColors.surfaceContainerLow,
           borderRadius: BorderRadius.circular(20),
         ),
-        child: const Center(
+        child: Center(
           child: Text(
             'محتوایی یافت نشد',
-            style: TextStyle(color: Colors.white60, fontFamily: 'Vazirmatn'),
+            style: TextStyle(color: AppColors.onSurfaceVariant, fontFamily: 'Peyda'),
           ),
         ),
       );
@@ -99,6 +136,9 @@ class _HeroNewsCarouselState extends State<HeroNewsCarousel> {
             controller: _pageController,
             onPageChanged: (index) {
               setState(() => _currentIndex = index);
+              // A manual swipe shouldn't get immediately overridden by
+              // whatever's left of the previous auto-advance countdown.
+              _startAutoPlay();
             },
             itemCount: _items.length,
             itemBuilder: (context, index) {
@@ -113,8 +153,8 @@ class _HeroNewsCarouselState extends State<HeroNewsCarousel> {
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
                         color: AppColors.surfaceContainerHigh,
-                        child: const Center(
-                          child: Icon(Icons.image_not_supported_rounded, size: 64, color: Colors.white24),
+                        child: Center(
+                          child: Icon(Icons.image_not_supported_rounded, size: 64, color: AppColors.onSurfaceVariant),
                         ),
                       );
                     },
@@ -150,8 +190,8 @@ class _HeroNewsCarouselState extends State<HeroNewsCarousel> {
                           child: Text(
                             item.isLocal ? 'محتوای اختصاصی' : 'گزارش تصویری',
                             style: const TextStyle(
-                              fontFamily: 'Vazirmatn',
-                              fontSize: 13,
+                              fontFamily: 'Peyda',
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: AppColors.onPrimary,
                             ),
@@ -163,8 +203,8 @@ class _HeroNewsCarouselState extends State<HeroNewsCarousel> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontFamily: 'Vazirmatn',
-                            fontSize: 26,
+                            fontFamily: 'Peyda',
+                            fontSize: 28,
                             fontWeight: FontWeight.bold,
                             height: 1.35,
                             color: Colors.white,

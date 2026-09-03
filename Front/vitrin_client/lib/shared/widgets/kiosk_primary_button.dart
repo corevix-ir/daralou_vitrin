@@ -50,7 +50,7 @@ class KioskPrimaryButton extends StatelessWidget {
                   Text(
                     label,
                     style: const TextStyle(
-                      fontFamily: 'Vazirmatn',
+                      fontFamily: 'Peyda',
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: AppColors.onPrimary,

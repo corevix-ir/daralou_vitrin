@@ -20,10 +20,10 @@ class LoginScreen extends StatelessWidget {
               children: [
                 const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 56),
                 const SizedBox(height: 12),
-                const Text(
+                Text(
                   'شرکت مس درآلو - ویترین',
                   style: TextStyle(
-                    fontFamily: 'Vazirmatn',
+                    fontFamily: 'Peyda',
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: AppColors.onSurface,
