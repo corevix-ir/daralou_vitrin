@@ -86,7 +86,7 @@ func InitializeApp() *echo.Echo {
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"http://localhost:8081"}, // فقط فرانت لوکال
 		AllowMethods: []string{"GET", "POST", "PUT", "DELETE"},
-		AllowHeaders: []string{"Authorization", "Content-Type"},
+		AllowHeaders: []string{"Authorization", "Content-Type", "X-Kiosk-ID"},
 	}))
 
 	// مستندات Swagger روی /swagger/index.html

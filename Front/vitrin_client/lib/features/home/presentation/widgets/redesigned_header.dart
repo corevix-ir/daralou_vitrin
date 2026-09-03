@@ -5,7 +5,9 @@ import '../../../../core/network/auth_token_storage.dart';
 import '../../../auth/presentation/widgets/login_dialog.dart';
 
 class RedesignedHeader extends StatefulWidget {
-  const RedesignedHeader({super.key});
+  final VoidCallback? onReLogin;
+
+  const RedesignedHeader({super.key, this.onReLogin});
 
   @override
   State<RedesignedHeader> createState() => _RedesignedHeaderState();
@@ -114,7 +116,13 @@ class _RedesignedHeaderState extends State<RedesignedHeader> {
           // Center: Device Login / Status Button
           InkWell(
             onTap: () {
-              LoginDialog.show(context, onLoginSuccess: _checkAuthStatus);
+              LoginDialog.show(
+                context,
+                onLoginSuccess: () {
+                  _checkAuthStatus();
+                  widget.onReLogin?.call();
+                },
+              );
             },
             borderRadius: BorderRadius.circular(12),
             child: Container(

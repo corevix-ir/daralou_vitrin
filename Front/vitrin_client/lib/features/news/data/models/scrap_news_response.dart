@@ -25,7 +25,7 @@ class ScrapNewsResponse {
         size: size,
       );
     } else if (json is Map<String, dynamic>) {
-      final rawItems = json['items'] ?? json['results'] ?? json['data'];
+      final rawItems = json['content'] ?? json['items'] ?? json['results'] ?? json['data'];
       List<VitrinItem> list = [];
       if (rawItems is List) {
         list = rawItems

@@ -13,8 +13,10 @@ type ContentRepository interface {
 	GetByIDContent(id uint) (*Models.Content, error)
 	GetAllContent() ([]Models.Content, error)
 	GetContentsBySource(source string, offset, limit int) ([]Models.Content, error)
+	CountContentsBySource(source string) (int64, error)
 	GetLatestContentsBySource(source string, limit int) ([]Models.Content, error)
 	GetContentsByDevice(deviceID uint, offset, limit int) ([]Models.Content, error)
+	CountContentsByDevice(deviceID uint) (int64, error)
 	GetContentsByDeviceAndPriority(deviceID uint, priority int) ([]Models.Content, error)
 	AssignContentToDevice(deviceID, contentID uint) error
 	IsContentAssignedToDevice(deviceID, contentID uint) (bool, error)
@@ -80,6 +82,12 @@ func (r *contentRepository) GetContentsBySource(source string, offset, limit int
 	return contents, err
 }
 
+func (r *contentRepository) CountContentsBySource(source string) (int64, error) {
+	var count int64
+	err := r.db.Model(&Models.Content{}).Where("source = ?", source).Count(&count).Error
+	return count, err
+}
+
 func (r *contentRepository) GetLatestContentsBySource(source string, limit int) ([]Models.Content, error) {
 	var contents []Models.Content
 	err := r.db.Where("source = ?", source).
@@ -99,6 +107,16 @@ func (r *contentRepository) GetContentsByDevice(deviceID uint, offset, limit int
 		Offset(offset).Limit(limit).
 		Find(&contents).Error
 	return contents, err
+}
+
+func (r *contentRepository) CountContentsByDevice(deviceID uint) (int64, error) {
+	var count int64
+	err := r.db.
+		Model(&Models.Content{}).
+		Joins("JOIN device_content ON device_content.content_id = contents.id").
+		Where("device_content.device_id = ?", deviceID).
+		Count(&count).Error
+	return count, err
 }
 
 // GetContentsByDeviceAndPriority برای ویترین استفاده میشه (priority=1)

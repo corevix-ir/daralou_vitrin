@@ -119,7 +119,14 @@ func (s *contentService) GetScrapContentList(page, size int) (DTO.ContentList, e
 	if err != nil {
 		return result, errors.New("خطا در دریافت لیست اخبار: " + err.Error())
 	}
+	total, err := s.Repository.CountContentsBySource(Models.SourceDaralou)
+	if err != nil {
+		return result, errors.New("خطا در شمارش لیست اخبار: " + err.Error())
+	}
 	result.SummaryContent = toSummaryList(contents)
+	result.Total = total
+	result.Page = page
+	result.Size = size
 	return result, nil
 }
 
@@ -131,7 +138,14 @@ func (s *contentService) GetLocalContentList(deviceID uint, page, size int) (DTO
 	if err != nil {
 		return result, errors.New("خطا در دریافت محتوای دستگاه: " + err.Error())
 	}
+	total, err := s.Repository.CountContentsByDevice(deviceID)
+	if err != nil {
+		return result, errors.New("خطا در شمارش محتوای دستگاه: " + err.Error())
+	}
 	result.SummaryContent = toSummaryList(contents)
+	result.Total = total
+	result.Page = page
+	result.Size = size
 
 	return result, nil
 }

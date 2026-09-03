@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'core/theme/kiosk_theme.dart';
 import 'core/utils/global_keys.dart';
 import 'shared/widgets/kiosk_view_scaler.dart';
-import 'features/home/presentation/screens/home_kiosk_screen.dart';
+import 'features/auth/presentation/screens/auth_gate.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,7 +27,7 @@ class DaralouVitrinKioskApp extends StatelessWidget {
           ),
         );
       },
-      home: const HomeKioskScreen(),
+      home: const AuthGate(),
     );
   }
 }
