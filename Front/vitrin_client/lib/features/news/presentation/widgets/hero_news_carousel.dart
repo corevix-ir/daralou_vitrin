@@ -122,7 +122,10 @@ class _HeroNewsCarouselState extends State<HeroNewsCarousel> {
         child: Center(
           child: Text(
             'محتوایی یافت نشد',
-            style: TextStyle(color: AppColors.onSurfaceVariant, fontFamily: 'Peyda'),
+            style: TextStyle(
+              color: AppColors.onSurfaceVariant,
+              fontFamily: 'Peyda',
+            ),
           ),
         ),
       );
@@ -154,7 +157,11 @@ class _HeroNewsCarouselState extends State<HeroNewsCarousel> {
                       return Container(
                         color: AppColors.surfaceContainerHigh,
                         child: Center(
-                          child: Icon(Icons.image_not_supported_rounded, size: 64, color: AppColors.onSurfaceVariant),
+                          child: Icon(
+                            Icons.image_not_supported_rounded,
+                            size: 64,
+                            color: AppColors.onSurfaceVariant,
+                          ),
                         ),
                       );
                     },
@@ -182,13 +189,16 @@ class _HeroNewsCarouselState extends State<HeroNewsCarousel> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.primary,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            item.isLocal ? 'محتوای اختصاصی' : 'گزارش تصویری',
+                            item.isLocal ? 'اختصاصی' : 'گزارش',
                             style: const TextStyle(
                               fontFamily: 'Peyda',
                               fontSize: 16,
@@ -231,7 +241,10 @@ class _HeroNewsCarouselState extends State<HeroNewsCarousel> {
                   width: _currentIndex == index ? 24 : 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: _currentIndex == index ? AppColors.primary : Colors.white38,
+                    color:
+                        _currentIndex == index
+                            ? AppColors.primary
+                            : Colors.white38,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),

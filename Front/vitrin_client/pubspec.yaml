@@ -12,6 +12,13 @@ dependencies:
   dio: ^5.11.0
   shared_preferences: ^2.5.3
   intl: ^0.20.2
+  flutter_html: ^3.0.0
+  webview_flutter: ^4.13.0
+  # Pinned: flutter_html 3.0.0 reaches into html's internal (non-exported)
+  # query_selector.dart for a top-level `matches()` function that was
+  # removed in 0.15.7, which breaks the build ("Method not found: matches").
+  # Keep this below 0.15.7 until flutter_html is updated to match.
+  html: 0.15.6
 
 dev_dependencies:
   flutter_test:

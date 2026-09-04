@@ -3,6 +3,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/bento_card.dart';
 import '../../data/models/vitrin_item.dart';
 import '../../data/services/vitrin_news_service.dart';
+import 'news_detail_screen.dart';
 
 class NewsListScreen extends StatefulWidget {
   const NewsListScreen({super.key});
@@ -129,6 +130,15 @@ class _NewsListScreenState extends State<NewsListScreen> {
                             final item = _newsItems[index];
                             return BentoCard(
                               padding: EdgeInsets.zero,
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => NewsDetailScreen(
+                                    contentId: item.id,
+                                    previewTitle: item.title,
+                                    previewImage: item.mainImg,
+                                  ),
+                                ),
+                              ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(16),
                                 child: Stack(

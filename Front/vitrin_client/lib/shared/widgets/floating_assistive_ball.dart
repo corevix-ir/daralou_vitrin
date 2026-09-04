@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../core/auth/auth_state.dart';
@@ -23,34 +24,77 @@ class FloatingAssistiveBall extends StatefulWidget {
   State<FloatingAssistiveBall> createState() => _FloatingAssistiveBallState();
 }
 
-class _FloatingAssistiveBallState extends State<FloatingAssistiveBall> {
+class _FloatingAssistiveBallState extends State<FloatingAssistiveBall>
+    with SingleTickerProviderStateMixin {
   static const double _ballSize = 84;
   static const double _subBallSize = 64;
   static const double _edgeMargin = 10;
   static const double _subButtonDistance = 104;
   static const double _subButtonGap = 88;
 
+  // How long the ball sits untouched before it "rests" against the wall,
+  // and how far it sinks into it — like a water droplet that has mostly
+  // (but not fully) soaked into the edge, leaving a small bulge visible.
+  static const Duration _idleDelay = Duration(seconds: 4);
+  static const double _idleShrinkScale = 0.8;
+  static const double _idleSinkFraction = 0.72;
+  static const double _idleOpacity = 0.8;
+
   final AuthState _authState = AuthState.instance;
 
   Offset? _position;
   bool _menuOpen = false;
+  bool _idle = false;
   _StickyEdge _edge = _StickyEdge.right;
   Duration _animDuration = Duration.zero;
+  Curve _mainCurve = Curves.easeOutCubic;
+
+  Timer? _idleTimer;
+  late final AnimationController _breatheController;
+  late final Animation<double> _breathe;
 
   @override
   void initState() {
     super.initState();
     _authState.addListener(_onAuthChanged);
+    _breatheController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat(reverse: true);
+    _breathe = CurvedAnimation(parent: _breatheController, curve: Curves.easeInOut);
+    _scheduleIdle();
   }
 
   @override
   void dispose() {
     _authState.removeListener(_onAuthChanged);
+    _idleTimer?.cancel();
+    _breatheController.dispose();
     super.dispose();
   }
 
   void _onAuthChanged() {
     if (mounted) setState(() {});
+  }
+
+  void _scheduleIdle() {
+    _idleTimer?.cancel();
+    _idleTimer = Timer(_idleDelay, () {
+      if (!mounted || _menuOpen || _idle) return;
+      setState(() {
+        _idle = true;
+        _animDuration = const Duration(milliseconds: 520);
+        _mainCurve = Curves.easeInOutSine;
+      });
+    });
+  }
+
+  // Direction pointing away from the canvas, through the wall the ball is
+  // resting against — used to push the idle ball partly off-stage so it
+  // reads as "sunk into" the edge rather than merely shrunk in place.
+  Offset _idleOutwardOffset() {
+    final inward = _inwardDirection();
+    return -inward * (_ballSize * _idleSinkFraction);
   }
 
   Offset _defaultPosition() {
@@ -96,15 +140,41 @@ class _FloatingAssistiveBallState extends State<FloatingAssistiveBall> {
 
     setState(() {
       _animDuration = const Duration(milliseconds: 220);
+      _mainCurve = Curves.easeOutCubic;
       _position = Offset(dx, dy);
       _edge = edge;
     });
+    _scheduleIdle();
   }
 
   void _toggleMenu() => setState(() => _menuOpen = !_menuOpen);
 
   void _closeMenu() {
     if (_menuOpen) setState(() => _menuOpen = false);
+    _scheduleIdle();
+  }
+
+  // Tapping the resting (idle) droplet first pops it back to the full ball
+  // — a little bounce "coming up" off the wall — and only once that
+  // settles does the radial menu actually open, per how a real button
+  // would surface itself before reacting.
+  void _handleMainTap() {
+    _idleTimer?.cancel();
+    if (_idle) {
+      const wakeDuration = Duration(milliseconds: 360);
+      setState(() {
+        _idle = false;
+        _animDuration = wakeDuration;
+        _mainCurve = Curves.easeOutBack;
+      });
+      Future.delayed(wakeDuration, () {
+        if (!mounted) return;
+        setState(() => _menuOpen = true);
+      });
+    } else {
+      _toggleMenu();
+      if (!_menuOpen) _scheduleIdle();
+    }
   }
 
   Future<void> _handleAuthTap() async {
@@ -201,16 +271,19 @@ class _FloatingAssistiveBallState extends State<FloatingAssistiveBall> {
         topLeft.dy.clamp(0.0, size.height - _subBallSize),
       );
 
+      // Each sub-button gets a slightly longer delay than the last so they
+      // cascade open instead of popping in all at once.
+      final stagger = _menuOpen ? i * 35 : 0;
       widgets.add(
         AnimatedPositioned(
-          duration: const Duration(milliseconds: 200),
+          duration: Duration(milliseconds: 200 + stagger),
           curve: Curves.easeOutBack,
           left: topLeft.dx,
           top: topLeft.dy,
           child: IgnorePointer(
             ignoring: !_menuOpen,
             child: AnimatedOpacity(
-              duration: const Duration(milliseconds: 150),
+              duration: Duration(milliseconds: 150 + stagger),
               opacity: _menuOpen ? 1 : 0,
               child: _SubBallButton(spec: specs[i], size: _subBallSize),
             ),
@@ -243,10 +316,18 @@ class _FloatingAssistiveBallState extends State<FloatingAssistiveBall> {
           ),
         ],
       ),
-      child: Icon(
-        _menuOpen ? Icons.close_rounded : Icons.apps_rounded,
-        color: accent,
-        size: 32,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 220),
+        transitionBuilder: (child, anim) => RotationTransition(
+          turns: Tween<double>(begin: 0.75, end: 1).animate(anim),
+          child: ScaleTransition(scale: anim, child: child),
+        ),
+        child: Icon(
+          _menuOpen ? Icons.close_rounded : Icons.apps_rounded,
+          key: ValueKey(_menuOpen),
+          color: accent,
+          size: 32,
+        ),
       ),
     );
   }
@@ -255,6 +336,7 @@ class _FloatingAssistiveBallState extends State<FloatingAssistiveBall> {
   Widget build(BuildContext context) {
     _position ??= _defaultPosition();
     final position = _position!;
+    final renderPosition = _idle ? position + _idleOutwardOffset() : position;
 
     return Stack(
       children: [
@@ -269,13 +351,15 @@ class _FloatingAssistiveBallState extends State<FloatingAssistiveBall> {
         ..._buildSubButtons(),
         AnimatedPositioned(
           duration: _animDuration,
-          curve: Curves.easeOutCubic,
-          left: position.dx,
-          top: position.dy,
+          curve: _mainCurve,
+          left: renderPosition.dx,
+          top: renderPosition.dy,
           child: GestureDetector(
             onPanStart: (_) {
+              _idleTimer?.cancel();
               setState(() {
                 _menuOpen = false;
+                _idle = false;
                 _animDuration = Duration.zero;
               });
             },
@@ -283,8 +367,28 @@ class _FloatingAssistiveBallState extends State<FloatingAssistiveBall> {
               setState(() => _position = _clampFree(position + details.delta));
             },
             onPanEnd: (_) => _snapToNearestWall(_position!),
-            onTap: _toggleMenu,
-            child: _mainBall(),
+            onTap: _handleMainTap,
+            child: AnimatedBuilder(
+              animation: _breathe,
+              builder: (context, child) {
+                // A very small, continuous "living" wobble on top of the
+                // idle shrink — only noticeable while the droplet is
+                // resting, so it reads as alive rather than frozen.
+                final wobble = 1 + (_breathe.value - 0.5) * 0.07;
+                return Transform.scale(scale: _idle ? wobble : 1.0, child: child);
+              },
+              child: AnimatedScale(
+                scale: _idle ? _idleShrinkScale : 1.0,
+                duration: _animDuration,
+                curve: _mainCurve,
+                child: AnimatedOpacity(
+                  opacity: _idle ? _idleOpacity : 1.0,
+                  duration: _animDuration,
+                  curve: _mainCurve,
+                  child: _mainBall(),
+                ),
+              ),
+            ),
           ),
         ),
       ],

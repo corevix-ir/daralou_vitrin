@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../../../core/network/core_http_client.dart';
+import '../models/content_detail.dart';
 import '../models/scrap_news_response.dart';
 import '../models/vitrin_content_response.dart';
 import '../models/vitrin_item.dart';
@@ -38,6 +39,22 @@ class VitrinNewsService {
 
       if (response.statusCode == 200 && response.data != null) {
         return ScrapNewsResponse.fromJson(response.data, page, size);
+      }
+    } on DioException catch (_) {
+      // Endpoint error trapped by interceptor
+    } catch (_) {}
+
+    return null;
+  }
+
+  /// Returns `null` on a failed request, for the same reason as
+  /// [getVitrinContents].
+  Future<ContentDetail?> getContentDetail(int contentId) async {
+    try {
+      final response = await _client.dio.get('/contents/$contentId');
+
+      if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
+        return ContentDetail.fromJson(response.data as Map<String, dynamic>);
       }
     } on DioException catch (_) {
       // Endpoint error trapped by interceptor
