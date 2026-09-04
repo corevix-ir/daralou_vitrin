@@ -4,6 +4,7 @@ import (
 	"Back/Auth"
 	"Back/Config"
 	Controllers "Back/Controller"
+	"Back/Realtime"
 	"Back/Repositories"
 	Routes "Back/Routs"
 	"Back/Scraper"
@@ -97,10 +98,13 @@ func InitializeApp() *echo.Echo {
 		}
 	}()
 
+	// راه‌اندازی هاب بلادرنگ (Socket.IO) برای ارسال دستور به دستگاه‌ها
+	realtimeHub := Realtime.NewHub(jwtService, deviceService)
+
 	// راه‌اندازی کنترلرها
 	authController := Controllers.NewAuthController(authService)
 	contentController := Controllers.NewContentController(contentService, deviceService)
-	deviceController := Controllers.NewDeviceController(deviceService)
+	deviceController := Controllers.NewDeviceController(deviceService, realtimeHub)
 
 	// راه‌اندازی Middleware ها
 	jwtMiddleware := Mymiddleware.NewAuthMiddleware(jwtService)
@@ -123,6 +127,11 @@ func InitializeApp() *echo.Echo {
 
 	// مستندات Swagger روی /swagger/index.html
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
+
+	// اتصال بلادرنگ (Socket.IO) - دستگاه‌ها بعد از لاگین به اینجا وصل می‌شوند
+	// تا بتوانیم بدون پولینگ دستور فوری (باز کردن پنل ادمین و غیره) بفرستیم.
+	e.Any("/socket.io", echo.WrapHandler(realtimeHub.Handler()))
+	e.Any("/socket.io/*", echo.WrapHandler(realtimeHub.Handler()))
 
 	// ثبت مسیرها
 	Routes.RegisterAuthRoutes(e, authController, jwtMiddleware, roleMiddleware)

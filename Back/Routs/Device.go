@@ -14,4 +14,5 @@ func RegisterDeviceRoutes(e *echo.Echo, controller *Controllers.DeviceController
 	group.GET("", controller.GetAllDeviceList)
 	group.PUT("/:id", controller.UpdateDevice)
 	group.DELETE("/:id", controller.DeleteDevice)
+	group.POST("/:id/commands", controller.SendCommand)
 }

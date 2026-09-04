@@ -27,6 +27,18 @@ class _AdminOption {
 class AdminPanelScreen extends StatelessWidget {
   const AdminPanelScreen({super.key});
 
+  /// Pushes the panel directly, with no password gate. The local entry
+  /// point (the floating assistive ball) checks the admin password itself
+  /// before calling this; a remote `open_admin_panel` command (see
+  /// `RemoteCommandBindings`) is trusted out-of-band - the backend already
+  /// required an authenticated admin to trigger it - so it calls this too,
+  /// just without a dialog in between.
+  static void open(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const AdminPanelScreen()),
+    );
+  }
+
   static final List<_AdminOption> _options = [
     _AdminOption(
       title: 'گزینه‌های توسعه‌دهنده',

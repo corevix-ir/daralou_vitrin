@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../network/auth_token_storage.dart';
 import '../network/token_refresh_service.dart';
+import '../realtime/remote_command_service.dart';
 import '../../features/auth/data/services/auth_service.dart';
 
 /// Single source of truth for the device login state, shared by [AuthGate]
@@ -29,6 +30,7 @@ class AuthState extends ChangeNotifier {
       if (accessToken != null && accessToken.isNotEmpty) {
         TokenRefreshService.instance.scheduleProactiveRefresh(accessToken);
       }
+      RemoteCommandService.instance.connect();
 
       final profile = await _authService.getProfile();
       if (profile != null) {
@@ -37,6 +39,7 @@ class AuthState extends ChangeNotifier {
       }
     } else {
       TokenRefreshService.instance.cancelProactiveRefresh();
+      RemoteCommandService.instance.disconnect();
       location = '';
       section = '';
     }
@@ -46,6 +49,7 @@ class AuthState extends ChangeNotifier {
 
   Future<void> logout() async {
     TokenRefreshService.instance.cancelProactiveRefresh();
+    RemoteCommandService.instance.disconnect();
     await _authService.logout();
     isLoggedIn = false;
     username = '';

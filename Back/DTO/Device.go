@@ -25,6 +25,15 @@ type UpdateDevice struct {
 	Config     *Models.JSONB `json:"config" validate:"omitempty"`
 }
 
+// SendDeviceCommand fires a real-time command at a device's socket
+// connection (see Realtime.Hub). Payload شکلش به نوع Type بستگی داره؛ برای
+// دستورهایی که داده‌ی اضافه لازم ندارند (مثل باز کردن پنل ادمین) خالی
+// می‌مونه.
+type SendDeviceCommand struct {
+	Type    string                 `json:"type" validate:"required"`
+	Payload map[string]interface{} `json:"payload" validate:"omitempty"`
+}
+
 type DeviceList struct {
 	ID         uint         `json:"id"`
 	Name       string       `json:"name"`

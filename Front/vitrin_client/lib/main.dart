@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'core/realtime/remote_command_bindings.dart';
 import 'core/theme/app_scroll_behavior.dart';
 import 'core/theme/kiosk_theme.dart';
 import 'core/theme/theme_controller.dart';
@@ -9,6 +10,10 @@ import 'features/auth/presentation/screens/auth_gate.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ThemeController.instance.init();
+  // Registers what each remote command type actually does before AuthGate
+  // can trigger the first AuthState.refresh() (and, if the device is
+  // already logged in, the first socket connection right along with it).
+  RemoteCommandBindings.registerAll();
   runApp(const DaralouVitrinKioskApp());
 }
 

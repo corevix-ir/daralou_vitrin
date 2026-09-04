@@ -2,6 +2,7 @@ package Controllers
 
 import (
 	"Back/DTO"
+	"Back/Realtime"
 	"Back/Service"
 	"Back/Validation"
 	"net/http"
@@ -12,10 +13,11 @@ import (
 
 type DeviceController struct {
 	deviceService Services.DeviceService
+	hub           *Realtime.Hub
 }
 
-func NewDeviceController(deviceService Services.DeviceService) *DeviceController {
-	return &DeviceController{deviceService: deviceService}
+func NewDeviceController(deviceService Services.DeviceService, hub *Realtime.Hub) *DeviceController {
+	return &DeviceController{deviceService: deviceService, hub: hub}
 }
 
 // CreateDevice godoc
@@ -117,4 +119,36 @@ func (ctrl *DeviceController) DeleteDevice(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{"message": "دستگاه با موفقیت حذف شد"})
+}
+
+// SendCommand godoc
+// @Summary      ارسال دستور بلادرنگ به دستگاه
+// @Description  از طریق اتصال Socket.IO فعلیِ دستگاه یک دستور فوری برایش می‌فرستد (مثلاً باز کردن پنل ادمین بدون رمز) - فقط ادمین
+// @Tags         Devices
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id       path      int                    true  "شناسه دستگاه"
+// @Param        request  body      DTO.SendDeviceCommand  true  "نوع و داده دستور"
+// @Success      200      {object}  DTO.MessageResponse
+// @Failure      400      {object}  DTO.ErrorResponse
+// @Failure      401      {object}  DTO.ErrorResponse
+// @Failure      409      {object}  DTO.ErrorResponse
+// @Router       /devices/{id}/commands [post]
+func (ctrl *DeviceController) SendCommand(c echo.Context) error {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "شناسه نامعتبر است"})
+	}
+
+	var request DTO.SendDeviceCommand
+	if err = Validation.ValidateRequest(c, &request); err != nil {
+		return err
+	}
+
+	if err = ctrl.hub.SendCommand(uint(id), request.Type, request.Payload); err != nil {
+		return c.JSON(http.StatusConflict, echo.Map{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "دستور با موفقیت ارسال شد"})
 }
