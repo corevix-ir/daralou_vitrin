@@ -14,7 +14,7 @@ class EmergencyFooterTicker extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: const Row(
         children: [
-          Icon(Icons.warning_amber_rounded, color: Colors.white, size: 24),
+          Icon(Icons.warning_amber_rounded, color: AppColors.onDark, size: 24),
           SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -25,7 +25,7 @@ class EmergencyFooterTicker extends StatelessWidget {
                 fontFamily: 'Peyda',
                 fontSize: 17,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: AppColors.onDark,
               ),
             ),
           ),

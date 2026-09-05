@@ -1,12 +1,22 @@
 class AppConfig {
   final bool isDebug;
   final String baseUrl;
+  final String updateCheckUrl;
+  final String updateApkUrl;
 
-  const AppConfig({required this.isDebug, required this.baseUrl});
+  const AppConfig({
+    required this.isDebug,
+    required this.baseUrl,
+    this.updateCheckUrl = '',
+    this.updateApkUrl = '',
+  });
 
   static AppConfig current = const AppConfig(
     isDebug: true,
     baseUrl: 'http://localhost:5749/', // Replace or update base URL as required
+    updateCheckUrl: 'https://wikm.ir/vitrin/', // آدرس صفحه HTML حاوی شماره نسخه
+    updateApkUrl:
+        'http://example.com/version/app-release.apk', // آدرس فایل APK جهت دانلود نسخه جدید
   );
 
   /// The backend returns media (e.g. `main_img`) as a path relative to
@@ -17,9 +27,10 @@ class AppConfig {
     if (path.isEmpty) return path;
     if (path.startsWith('http://') || path.startsWith('https://')) return path;
 
-    final base = current.baseUrl.endsWith('/')
-        ? current.baseUrl.substring(0, current.baseUrl.length - 1)
-        : current.baseUrl;
+    final base =
+        current.baseUrl.endsWith('/')
+            ? current.baseUrl.substring(0, current.baseUrl.length - 1)
+            : current.baseUrl;
     final suffix = path.startsWith('/') ? path : '/$path';
     return '$base$suffix';
   }

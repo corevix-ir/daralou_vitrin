@@ -16,7 +16,7 @@ class _NewsListScreenState extends State<NewsListScreen> {
   final VitrinNewsService _newsService = VitrinNewsService();
 
   int _currentPage = 1;
-  final int _pageSize = 6;
+  final int _pageSize = 8;
   int _totalCount = 0;
   bool _isLoading = true;
   List<VitrinItem> _newsItems = [];
@@ -168,8 +168,8 @@ class _NewsListScreenState extends State<NewsListScreen> {
                                           end: Alignment.bottomCenter,
                                           colors: [
                                             Colors.transparent,
-                                            Colors.black.withValues(alpha: 0.5),
-                                            Colors.black.withValues(alpha: 0.9),
+                                            AppColors.scrim.withValues(alpha: 0.5),
+                                            AppColors.scrim.withValues(alpha: 0.9),
                                           ],
                                         ),
                                       ),
@@ -191,7 +191,7 @@ class _NewsListScreenState extends State<NewsListScreen> {
                                               fontFamily: 'Peyda',
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,
-                                              color: Colors.white,
+                                              color: AppColors.onDark,
                                               height: 1.3,
                                             ),
                                           ),
@@ -210,7 +210,11 @@ class _NewsListScreenState extends State<NewsListScreen> {
                                                   style: TextStyle(
                                                     fontFamily: 'Peyda',
                                                     fontSize: 12,
-                                                    color: AppColors.onSurfaceVariant,
+                                                    // Fixed, not onSurfaceVariant: this sits on the
+                                                    // same always-dark gradient as the white title
+                                                    // above, which in light mode made this text a
+                                                    // near-black-on-near-black near-miss.
+                                                    color: AppColors.onDarkMuted,
                                                   ),
                                                 ),
                                               ],
@@ -252,7 +256,7 @@ class _NewsListScreenState extends State<NewsListScreen> {
                     onPressed: _currentPage > 1 && !_isLoading
                         ? () => _fetchNewsPage(_currentPage - 1)
                         : null,
-                    icon: const Icon(Icons.chevron_right_rounded, size: 22),
+                    icon: const Icon(Icons.chevron_left_rounded, size: 22),
                     label: const Text(
                       'صفحه قبلی',
                       style: TextStyle(fontFamily: 'Peyda', fontWeight: FontWeight.bold),
@@ -295,7 +299,7 @@ class _NewsListScreenState extends State<NewsListScreen> {
                     onPressed: _currentPage < _totalPages && !_isLoading
                         ? () => _fetchNewsPage(_currentPage + 1)
                         : null,
-                    icon: const Icon(Icons.chevron_left_rounded, size: 22),
+                    icon: const Icon(Icons.chevron_right_rounded, size: 22),
                     label: const Text(
                       'صفحه بعدی',
                       style: TextStyle(fontFamily: 'Peyda', fontWeight: FontWeight.bold),

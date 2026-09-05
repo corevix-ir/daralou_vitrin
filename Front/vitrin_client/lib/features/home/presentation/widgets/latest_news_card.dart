@@ -166,8 +166,8 @@ class _LatestNewsCardState extends State<LatestNewsCard> {
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
-                              Colors.black.withValues(alpha: 0.3),
-                              Colors.black.withValues(alpha: 0.85),
+                              AppColors.scrim.withValues(alpha: 0.3),
+                              AppColors.scrim.withValues(alpha: 0.85),
                             ],
                           ),
                         ),
@@ -212,7 +212,7 @@ class _LatestNewsCardState extends State<LatestNewsCard> {
                                       decoration: BoxDecoration(
                                         color: _currentIndex == dotIdx
                                             ? AppColors.primary
-                                            : Colors.white38,
+                                            : AppColors.onDarkFaint,
                                         borderRadius: BorderRadius.circular(3),
                                       ),
                                     ),
@@ -233,7 +233,7 @@ class _LatestNewsCardState extends State<LatestNewsCard> {
                                     fontFamily: 'Peyda',
                                     fontSize: 17,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color: AppColors.onDark,
                                     height: 1.3,
                                   ),
                                 ),

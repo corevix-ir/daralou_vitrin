@@ -1,3 +1,4 @@
+import '../services/app_update_service.dart';
 import '../utils/global_keys.dart';
 import 'remote_command_service.dart';
 import '../../features/admin/presentation/screens/admin_panel_screen.dart';
@@ -23,6 +24,11 @@ abstract class RemoteCommandBindings {
     service.registerHandler('open_admin_panel', (payload) {
       final context = rootNavigatorKey.currentContext;
       if (context != null) AdminPanelScreen.open(context);
+    });
+
+    // Remote command to check for updates
+    service.registerHandler('check_for_update', (payload) {
+      AppUpdateService.checkForUpdate();
     });
   }
 }

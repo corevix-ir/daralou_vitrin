@@ -116,8 +116,8 @@ class _NewsDetailScreenState extends State<NewsDetailScreen> {
       stretch: true,
       expandedHeight: 360,
       backgroundColor: AppColors.surfaceContainerLow,
-      foregroundColor: Colors.white,
-      iconTheme: const IconThemeData(color: Colors.white),
+      foregroundColor: AppColors.onDark,
+      iconTheme: const IconThemeData(color: AppColors.onDark),
       flexibleSpace: FlexibleSpaceBar(
         stretchModes: const [StretchMode.zoomBackground],
         background: Stack(
@@ -143,9 +143,11 @@ class _NewsDetailScreenState extends State<NewsDetailScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withValues(alpha: 0.15),
-                    Colors.black.withValues(alpha: 0.35),
-                    Colors.black.withValues(alpha: 0.92),
+                    // Slightly stronger than a pure 0.15 wash so the AppBar's
+                    // back icon stays legible even over a bright hero photo.
+                    AppColors.scrim.withValues(alpha: 0.3),
+                    AppColors.scrim.withValues(alpha: 0.35),
+                    AppColors.scrim.withValues(alpha: 0.92),
                   ],
                 ),
               ),
@@ -185,7 +187,7 @@ class _NewsDetailScreenState extends State<NewsDetailScreen> {
                       fontSize: 26,
                       fontWeight: FontWeight.bold,
                       height: 1.35,
-                      color: Colors.white,
+                      color: AppColors.onDark,
                     ),
                   ),
                 ],

@@ -4,6 +4,7 @@ import (
 	"Back/Auth"
 	"Back/Config"
 	Controllers "Back/Controller"
+	Mymiddleware "Back/Middleware"
 	"Back/Realtime"
 	"Back/Repositories"
 	Routes "Back/Routs"
@@ -11,7 +12,6 @@ import (
 	Services "Back/Service"
 	"Back/Validation"
 	_ "Back/docs" // مستندات تولیدشده توسط `swag init` - قبل از build باید تولید شده باشه
-	Mymiddleware "Back/Middleware"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger"
@@ -67,6 +67,7 @@ func InitializeApp() *echo.Echo {
 	userRepo := Repositories.NewUserRepository(db)
 	contentRepo := Repositories.NewContentRepository(db)
 	deviceRepo := Repositories.NewDeviceRepository(db)
+	vitrineRepo := Repositories.NewVitrineRepository(db)
 
 	// ---------------------------------------------------------------
 	// FIX #5: اعتبارسنجی متغیرهای محیطی مربوط به JWT
@@ -88,7 +89,8 @@ func InitializeApp() *echo.Echo {
 
 	authService := Services.NewAuthService(userRepo, jwtService)
 	deviceService := Services.NewDeviceService(deviceRepo, authService)
-	contentService := Services.NewContentService(contentRepo, scraper.BaseImagePath)
+	contentService := Services.NewContentService(contentRepo, vitrineRepo, deviceRepo, scraper.BaseImagePath)
+	vitrineService := Services.NewVitrineService(vitrineRepo, contentRepo, deviceRepo)
 
 	scraperService := Scraper.NewScrapCollyService(contentRepo, scraper.Collector, scraper.BaseImagePath)
 	Scraper.StartScraperScheduler(scraperService)
@@ -105,6 +107,7 @@ func InitializeApp() *echo.Echo {
 	authController := Controllers.NewAuthController(authService)
 	contentController := Controllers.NewContentController(contentService, deviceService)
 	deviceController := Controllers.NewDeviceController(deviceService, realtimeHub)
+	vitrineController := Controllers.NewVitrineController(vitrineService, contentService)
 
 	// راه‌اندازی Middleware ها
 	jwtMiddleware := Mymiddleware.NewAuthMiddleware(jwtService)
@@ -137,6 +140,7 @@ func InitializeApp() *echo.Echo {
 	Routes.RegisterAuthRoutes(e, authController, jwtMiddleware, roleMiddleware)
 	Routes.RegisterContentRoutes(e, contentController, jwtMiddleware, roleMiddleware)
 	Routes.RegisterDeviceRoutes(e, deviceController, jwtMiddleware, roleMiddleware)
+	Routes.RegisterVitrineRoutes(e, vitrineController, jwtMiddleware, roleMiddleware)
 
 	return e
 }

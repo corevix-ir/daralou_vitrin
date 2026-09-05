@@ -18,7 +18,6 @@ type Content struct {
 	MainImageURL string
 	ExternalURL  string
 	Source       string
-	Priority     int `gorm:"default:0"`
 	StartDate    *time.Time
 	EndDate      *time.Time
 	IsPublished  bool `gorm:"default:true"`

@@ -213,6 +213,17 @@ class _FloatingAssistiveBallState extends State<FloatingAssistiveBall>
     ThemeController.instance.toggle();
   }
 
+  /// Pops the current screen, whatever it is - a one-tap "back" reachable
+  /// from anywhere in the app. On a large kiosk touchscreen, the in-screen
+  /// back button (top corner of e.g. the news list/detail screens) can be
+  /// an awkward reach; this stays right next to the ball wherever it's
+  /// docked. A no-op if there's nothing to pop (already on the home
+  /// screen), same as any other back action.
+  void _handleBackTap() {
+    _closeMenu();
+    rootNavigatorKey.currentState?.maybePop();
+  }
+
   Offset _inwardDirection() {
     switch (_edge) {
       case _StickyEdge.left:
@@ -254,6 +265,12 @@ class _FloatingAssistiveBallState extends State<FloatingAssistiveBall>
         label: ThemeController.instance.isDark ? 'حالت روشن' : 'حالت تیره',
         color: AppColors.slateDark,
         onTap: _handleThemeToggle,
+      ),
+      _SubButtonSpec(
+        icon: Icons.arrow_forward_rounded,
+        label: 'بازگشت',
+        color: AppColors.slateDark,
+        onTap: _handleBackTap,
       ),
     ];
 
@@ -310,7 +327,7 @@ class _FloatingAssistiveBallState extends State<FloatingAssistiveBall>
         border: Border.all(color: accent, width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.35),
+            color: AppColors.scrim.withValues(alpha: 0.35),
             blurRadius: 14,
             offset: const Offset(0, 6),
           ),
@@ -345,7 +362,7 @@ class _FloatingAssistiveBallState extends State<FloatingAssistiveBall>
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: _closeMenu,
-              child: Container(color: Colors.black.withValues(alpha: 0.15)),
+              child: Container(color: AppColors.scrim.withValues(alpha: 0.15)),
             ),
           ),
         ..._buildSubButtons(),
@@ -436,16 +453,16 @@ class _SubBallButton extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: spec.color,
-              border: Border.all(color: Colors.white24, width: 1.5),
+              border: Border.all(color: AppColors.onDarkBorder, width: 1.5),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.35),
+                  color: AppColors.scrim.withValues(alpha: 0.35),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
               ],
             ),
-            child: Icon(spec.icon, color: Colors.white, size: 24),
+            child: Icon(spec.icon, color: AppColors.onDark, size: 24),
           ),
         ),
       ),
@@ -505,7 +522,7 @@ class _LogoutConfirmDialog extends StatelessWidget {
                     onPressed: () => Navigator.of(context).pop(true),
                     child: const Text(
                       'خروج',
-                      style: TextStyle(fontFamily: 'Peyda', color: Colors.white),
+                      style: TextStyle(fontFamily: 'Peyda', color: AppColors.onDark),
                     ),
                   ),
                 ),

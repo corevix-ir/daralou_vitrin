@@ -48,6 +48,13 @@ class RemoteCommandService {
       AppConfig.current.baseUrl,
       socket_io.OptionBuilder()
           .disableAutoConnect()
+          // This package has no real polling transport on native platforms
+          // (dart:io) - it silently substitutes a WebSocket transport for
+          // whatever name the manager asks for, but still labels the
+          // handshake as "polling" by default, which the Go server doesn't
+          // accept as a valid upgrade. Forcing 'websocket' here makes the
+          // very first attempt match what actually works.
+          .setTransports(['websocket'])
           .setAuthFn((callback) {
             _tokenStorage.getAccessToken().then((token) {
               callback({'token': token ?? ''});

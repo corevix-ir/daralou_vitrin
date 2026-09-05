@@ -15,9 +15,9 @@ type ContentRepository interface {
 	GetContentsBySource(source string, offset, limit int) ([]Models.Content, error)
 	CountContentsBySource(source string) (int64, error)
 	GetLatestContentsBySource(source string, limit int) ([]Models.Content, error)
+	GetLatestContentsBySourceExcluding(source string, excludeIDs []uint, limit int) ([]Models.Content, error)
 	GetContentsByDevice(deviceID uint, offset, limit int) ([]Models.Content, error)
 	CountContentsByDevice(deviceID uint) (int64, error)
-	GetContentsByDeviceAndPriority(deviceID uint, priority int) ([]Models.Content, error)
 	AssignContentToDevice(deviceID, contentID uint) error
 	IsContentAssignedToDevice(deviceID, contentID uint) (bool, error)
 	UpdateContent(id uint, updates map[string]interface{}) error
@@ -97,6 +97,22 @@ func (r *contentRepository) GetLatestContentsBySource(source string, limit int) 
 	return contents, err
 }
 
+// GetLatestContentsBySourceExcluding مثل GetLatestContentsBySource است ولی
+// آیتم‌های excludeIDs (که از قبل به‌صورت دستی در ویترین پین شده‌ن) رو کنار
+// می‌ذاره تا اسلات‌های خالی ویترین با آیتم تکراری پر نشن.
+func (r *contentRepository) GetLatestContentsBySourceExcluding(source string, excludeIDs []uint, limit int) ([]Models.Content, error) {
+	var contents []Models.Content
+	query := r.db.Where("source = ? AND is_published = ?", source, true)
+	if len(excludeIDs) > 0 {
+		query = query.Where("id NOT IN ?", excludeIDs)
+	}
+	err := query.
+		Order("created_at DESC").
+		Limit(limit).
+		Find(&contents).Error
+	return contents, err
+}
+
 // GetContentsByDevice تمام محتوای اختصاص‌داده‌شده به یک دستگاه رو برمیگردونه (بدون فیلتر priority)
 func (r *contentRepository) GetContentsByDevice(deviceID uint, offset, limit int) ([]Models.Content, error) {
 	var contents []Models.Content
@@ -117,17 +133,6 @@ func (r *contentRepository) CountContentsByDevice(deviceID uint) (int64, error) 
 		Where("device_content.device_id = ?", deviceID).
 		Count(&count).Error
 	return count, err
-}
-
-// GetContentsByDeviceAndPriority برای ویترین استفاده میشه (priority=1)
-func (r *contentRepository) GetContentsByDeviceAndPriority(deviceID uint, priority int) ([]Models.Content, error) {
-	var contents []Models.Content
-	err := r.db.
-		Joins("JOIN device_content ON device_content.content_id = contents.id").
-		Where("device_content.device_id = ? AND contents.priority = ?", deviceID, priority).
-		Order("contents.created_at DESC").
-		Find(&contents).Error
-	return contents, err
 }
 
 func (r *contentRepository) AssignContentToDevice(deviceID, contentID uint) error {

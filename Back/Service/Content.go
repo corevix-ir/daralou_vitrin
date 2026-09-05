@@ -24,14 +24,23 @@ type ContentService interface {
 }
 
 type contentService struct {
-	Repository    Repositories.ContentRepository
-	baseImagePath string
+	Repository        Repositories.ContentRepository
+	VitrineRepository Repositories.VitrineRepository
+	DeviceRepository  Repositories.DeviceRepository
+	baseImagePath     string
 }
 
-func NewContentService(contentRepo Repositories.ContentRepository, baseImagePath string) ContentService {
+func NewContentService(
+	contentRepo Repositories.ContentRepository,
+	vitrineRepo Repositories.VitrineRepository,
+	deviceRepo Repositories.DeviceRepository,
+	baseImagePath string,
+) ContentService {
 	return &contentService{
-		Repository:    contentRepo,
-		baseImagePath: baseImagePath,
+		Repository:        contentRepo,
+		VitrineRepository: vitrineRepo,
+		DeviceRepository:  deviceRepo,
+		baseImagePath:     baseImagePath,
 	}
 }
 
@@ -50,7 +59,6 @@ func (s *contentService) CreateContent(userID uint, content DTO.CreateContent) e
 		Title:        content.Title,
 		Body:         content.Body,
 		Summary:      content.Summary,
-		Priority:     content.Priority,
 		MainImageURL: content.MainImg,
 		Source:       Models.SourceLocal,
 		StartDate:    content.StartDate,
@@ -95,22 +103,75 @@ func (s *contentService) CreateContent(userID uint, content DTO.CreateContent) e
 	return nil
 }
 
+// GetVitrinList ویترین این دستگاه رو می‌سازه: اول اسلات‌هایی که ادمین صریحاً
+// پین کرده (از هر دو منبع لوکال/اسکرپ) رو در جایگاه position خودشون قرار
+// می‌ده، بعد اسلات‌های خالی باقی‌مونده رو با آخرین اخبار اسکرپ‌شده (که قبلاً
+// پین نشده باشن) پر می‌کنه. اگه هیچ‌چیز پین نشده باشه، کل ویترین خودکار از
+// اخبار پر می‌شه؛ اگه همه‌ی اسلات‌ها پین شده باشن، هیچ خبری اضافه نمی‌شه.
 func (s *contentService) GetVitrinList(deviceID uint) (DTO.VitrinContentList, error) {
 	var result DTO.VitrinContentList
 
-	// ۵ خبر آخر اسکرپ‌شده - برای همه دستگاه‌ها یکسان
-	scrapContents, err := s.Repository.GetLatestContentsBySource(Models.SourceDaralou, 5)
+	device, err := s.DeviceRepository.GetByIDDevice(deviceID)
 	if err != nil {
-		return result, errors.New("خطا در دریافت اخبار اسکرپ شده: " + err.Error())
+		return result, errors.New("دستگاه یافت نشد")
 	}
-	result.Scrap = s.toSummaryList(scrapContents)
+	size := device.VitrineSize
+	if size < 1 {
+		size = 1
+	}
 
-	// محتوای اختصاصی دستگاه با priority=1
-	localContents, err1 := s.Repository.GetContentsByDeviceAndPriority(deviceID, 1)
-	if err1 != nil {
-		return result, errors.New("خطا در دریافت محتوای اختصاصی دستگاه: " + err1.Error())
+	pinned, err := s.VitrineRepository.GetItemsByDevice(deviceID)
+	if err != nil {
+		return result, errors.New("خطا در دریافت تنظیمات ویترین: " + err.Error())
 	}
-	result.Local = s.toSummaryList(localContents)
+
+	slots := make([]*DTO.VitrineSlot, size+1) // 1-indexed
+	usedIDs := make([]uint, 0, len(pinned))
+	for _, item := range pinned {
+		if item.Position < 1 || item.Position > size {
+			continue
+		}
+		slots[item.Position] = &DTO.VitrineSlot{
+			Position: item.Position,
+			Source:   item.Content.Source,
+			IsAuto:   false,
+			Content:  s.toSummaryContent(item.Content),
+		}
+		usedIDs = append(usedIDs, item.ContentID)
+	}
+
+	emptyPositions := make([]int, 0, size)
+	for pos := 1; pos <= size; pos++ {
+		if slots[pos] == nil {
+			emptyPositions = append(emptyPositions, pos)
+		}
+	}
+
+	if len(emptyPositions) > 0 {
+		news, err := s.Repository.GetLatestContentsBySourceExcluding(Models.SourceDaralou, usedIDs, len(emptyPositions))
+		if err != nil {
+			return result, errors.New("خطا در دریافت اخبار اسکرپ شده: " + err.Error())
+		}
+		for i, pos := range emptyPositions {
+			if i >= len(news) {
+				break
+			}
+			slots[pos] = &DTO.VitrineSlot{
+				Position: pos,
+				Source:   news[i].Source,
+				IsAuto:   true,
+				Content:  s.toSummaryContent(news[i]),
+			}
+		}
+	}
+
+	items := make([]DTO.VitrineSlot, 0, size)
+	for pos := 1; pos <= size; pos++ {
+		if slots[pos] != nil {
+			items = append(items, *slots[pos])
+		}
+	}
+	result.Items = items
 
 	return result, nil
 }
@@ -197,7 +258,6 @@ func (s *contentService) GetDetailsContent(contentID, deviceID uint) (DTO.Conten
 		ExtraImgList: imgUrls,
 		ExternalURL:  content.ExternalURL,
 		Source:       content.Source,
-		Priority:     content.Priority,
 		StartDate:    content.StartDate,
 		EndDate:      content.EndDate,
 		IsPublished:  content.IsPublished,
@@ -229,9 +289,6 @@ func (s *contentService) UpdateContent(id uint, request DTO.UpdateContentRequest
 	}
 	if request.Summary != nil {
 		updates["summary"] = *request.Summary
-	}
-	if request.Priority != nil {
-		updates["priority"] = *request.Priority
 	}
 	if request.MainImg != nil {
 		updates["main_image_url"] = *request.MainImg
@@ -337,15 +394,19 @@ func paginate(page, size int) (offset, limit int) {
 func (s *contentService) toSummaryList(contents []Models.Content) []DTO.SummaryContent {
 	list := make([]DTO.SummaryContent, len(contents))
 	for i, c := range contents {
-		list[i] = DTO.SummaryContent{
-			ID:        c.ID,
-			Title:     c.Title,
-			Summary:   c.Summary,
-			MainImg:   s.toPublicImageURL(c.MainImageURL),
-			CreatedAt: c.CreatedAt,
-		}
+		list[i] = s.toSummaryContent(c)
 	}
 	return list
+}
+
+func (s *contentService) toSummaryContent(c Models.Content) DTO.SummaryContent {
+	return DTO.SummaryContent{
+		ID:        c.ID,
+		Title:     c.Title,
+		Summary:   c.Summary,
+		MainImg:   s.toPublicImageURL(c.MainImageURL),
+		CreatedAt: c.CreatedAt,
+	}
 }
 
 // toPublicImageURL کند مسیر ذخیره‌شده در دیتابیس (چه مسیر مطلق فایل‌سیستم قدیمی،

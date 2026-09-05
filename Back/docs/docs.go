@@ -454,7 +454,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "لیست صفحه‌بندی‌شده محتوای اختصاص‌داده‌شده به دستگاه جاری",
+                "description": "لیست صفحه‌بندی‌شده محتوای اختصاص‌داده‌شده به یک دستگاه؛ دستگاه (نقش device) خودکار محتوای خودش را می‌بیند، ادمین/اپراتور باید device_id را در query بدهد",
                 "produces": [
                     "application/json"
                 ],
@@ -463,6 +463,12 @@ const docTemplate = `{
                 ],
                 "summary": "لیست محتوای دستگاه",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "شناسه دستگاه (برای ادمین/اپراتور الزامی است)",
+                        "name": "device_id",
+                        "in": "query"
+                    },
                     {
                         "type": "integer",
                         "description": "شماره صفحه (پیش‌فرض 1)",
@@ -481,6 +487,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/DTO.ContentList"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.ErrorResponse"
                         }
                     },
                     "401": {
@@ -562,7 +574,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "اخبار اسکرپ‌شده اخیر + محتوای اختصاصی با priority=1 برای دستگاه جاری",
+                "description": "ویترین این دستگاه: آیتم‌های پین‌شده توسط ادمین در جایگاه خودشون + پرشدن خودکار اسلات‌های خالی با آخرین اخبار",
                 "produces": [
                     "application/json"
                 ],
@@ -605,7 +617,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "دریافت جزئیات کامل یک محتوا؛ برای محتوای دستی، دسترسی دستگاه چک می‌شود",
+                "description": "دریافت جزئیات کامل یک محتوا؛ برای محتوای دستی، دسترسی دستگاه چک می‌شود (ادمین/اپراتور باید device_id را در query بدهد)",
                 "produces": [
                     "application/json"
                 ],
@@ -620,6 +632,12 @@ const docTemplate = `{
                         "name": "content_id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "شناسه دستگاه (برای ادمین/اپراتور الزامی است)",
+                        "name": "device_id",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -865,6 +883,172 @@ const docTemplate = `{
                 }
             }
         },
+        "/devices/{device_id}/vitrine": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "تعداد اسلات‌ها و آیتم‌های پین‌شده‌ی ویترین این دستگاه (برای ادیتور پنل ادمین)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vitrine"
+                ],
+                "summary": "دریافت تنظیمات ویترین یک دستگاه",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "شناسه دستگاه",
+                        "name": "device_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.VitrineConfig"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "جایگزینی کامل تعداد اسلات‌ها و آیتم‌های پین‌شده‌ی ویترین این دستگاه؛ اسلات‌های پین‌نشده خودکار با آخرین اخبار پر می‌شوند",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vitrine"
+                ],
+                "summary": "تنظیم ویترین یک دستگاه",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "شناسه دستگاه",
+                        "name": "device_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "تعداد اسلات‌ها و آیتم‌های پین‌شده",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/DTO.ReplaceVitrineConfigRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.MessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/devices/{device_id}/vitrine/preview": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "همون چیزی که خودِ دستگاه از GET /contents/vitrin می‌بینه، برای هر device_id دلخواه (برای پیش‌نمایش در پنل ادمین)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vitrine"
+                ],
+                "summary": "پیش‌نمایش ویترین رندرشده‌ی یک دستگاه",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "شناسه دستگاه",
+                        "name": "device_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.VitrinContentList"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/devices/{id}": {
             "put": {
                 "security": [
@@ -978,6 +1162,70 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/devices/{id}/commands": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "از طریق اتصال Socket.IO فعلیِ دستگاه یک دستور فوری برایش می‌فرستد (مثلاً باز کردن پنل ادمین بدون رمز) - فقط ادمین",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Devices"
+                ],
+                "summary": "ارسال دستور بلادرنگ به دستگاه",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "شناسه دستگاه",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "نوع و داده دستور",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/DTO.SendDeviceCommand"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.MessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1017,9 +1265,6 @@ const docTemplate = `{
                 "main_img_url": {
                     "type": "string"
                 },
-                "priority": {
-                    "type": "integer"
-                },
                 "source": {
                     "type": "string"
                 },
@@ -1045,6 +1290,15 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/DTO.SummaryContent"
                     }
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },
@@ -1055,7 +1309,6 @@ const docTemplate = `{
                 "device_id",
                 "img_list",
                 "main_img",
-                "priority",
                 "title"
             ],
             "properties": {
@@ -1083,11 +1336,6 @@ const docTemplate = `{
                 },
                 "main_img": {
                     "type": "string"
-                },
-                "priority": {
-                    "type": "integer",
-                    "maximum": 3,
-                    "minimum": 1
                 },
                 "start_date": {
                     "type": "string"
@@ -1218,11 +1466,17 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "location": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
                 "role": {
                     "$ref": "#/definitions/Models.UserRole"
+                },
+                "section": {
+                    "type": "string"
                 },
                 "status": {
                     "type": "boolean"
@@ -1283,6 +1537,40 @@ const docTemplate = `{
                 }
             }
         },
+        "DTO.ReplaceVitrineConfigRequest": {
+            "type": "object",
+            "required": [
+                "size"
+            ],
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/DTO.VitrineItemInput"
+                    }
+                },
+                "size": {
+                    "type": "integer",
+                    "maximum": 20,
+                    "minimum": 1
+                }
+            }
+        },
+        "DTO.SendDeviceCommand": {
+            "type": "object",
+            "required": [
+                "type"
+            ],
+            "properties": {
+                "payload": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "DTO.SummaryContent": {
             "type": "object",
             "properties": {
@@ -1316,13 +1604,6 @@ const docTemplate = `{
         },
         "DTO.UpdateContentRequest": {
             "type": "object",
-            "required": [
-                "body",
-                "img_list",
-                "main_img",
-                "priority",
-                "title"
-            ],
             "properties": {
                 "body": {
                     "type": "string",
@@ -1342,11 +1623,6 @@ const docTemplate = `{
                 },
                 "main_img": {
                     "type": "string"
-                },
-                "priority": {
-                    "type": "integer",
-                    "maximum": 3,
-                    "minimum": 1
                 },
                 "start_date": {
                     "type": "string"
@@ -1426,17 +1702,74 @@ const docTemplate = `{
         "DTO.VitrinContentList": {
             "type": "object",
             "properties": {
-                "local_content": {
+                "items": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/DTO.SummaryContent"
+                        "$ref": "#/definitions/DTO.VitrineSlot"
+                    }
+                }
+            }
+        },
+        "DTO.VitrineConfig": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/DTO.VitrineItemDetail"
                     }
                 },
-                "scrap_content": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/DTO.SummaryContent"
-                    }
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "DTO.VitrineItemDetail": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "$ref": "#/definitions/DTO.SummaryContent"
+                },
+                "position": {
+                    "type": "integer"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "DTO.VitrineItemInput": {
+            "type": "object",
+            "required": [
+                "content_id",
+                "position"
+            ],
+            "properties": {
+                "content_id": {
+                    "type": "integer"
+                },
+                "position": {
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        },
+        "DTO.VitrineSlot": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "$ref": "#/definitions/DTO.SummaryContent"
+                },
+                "is_auto": {
+                    "description": "true یعنی این اسلات خودکار از آخرین اخبار پر شده",
+                    "type": "boolean"
+                },
+                "position": {
+                    "type": "integer"
+                },
+                "source": {
+                    "description": "daralouWeb | daralouOperator",
+                    "type": "string"
                 }
             }
         },

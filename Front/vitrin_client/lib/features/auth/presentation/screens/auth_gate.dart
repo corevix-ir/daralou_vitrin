@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/auth/auth_state.dart';
+import '../../../../core/services/app_update_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../home/presentation/screens/home_kiosk_screen.dart';
 import 'login_screen.dart';
@@ -33,6 +34,9 @@ class _AuthGateState extends State<AuthGate> {
     await _authState.refresh();
     if (mounted) {
       setState(() => _isChecking = false);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        AppUpdateService.checkForUpdate();
+      });
     }
   }
 

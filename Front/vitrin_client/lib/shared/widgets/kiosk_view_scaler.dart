@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart';
 import 'floating_assistive_ball.dart';
 
 /// A wrapper widget that enforces a fixed 1080x1920 Portrait Kiosk canvas
@@ -22,7 +23,7 @@ class KioskViewScaler extends StatelessWidget {
     if (!enableScaling) return child;
 
     return Container(
-      color: const Color(0xFF0A0B0B),
+      color: AppColors.canvasLetterbox,
       child: Center(
         child: AspectRatio(
           aspectRatio: targetWidth / targetHeight,

@@ -32,7 +32,7 @@ class GlobalSnackBar {
     required String message,
     required IconData icon,
     required Color backgroundColor,
-    Color foregroundColor = Colors.white,
+    Color foregroundColor = AppColors.onDark,
   }) {
     rootScaffoldMessengerKey.currentState?.removeCurrentSnackBar();
     rootScaffoldMessengerKey.currentState?.showSnackBar(

@@ -173,9 +173,9 @@ class _HeroNewsCarouselState extends State<HeroNewsCarousel> {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withValues(alpha: 0.2),
-                          Colors.black.withValues(alpha: 0.4),
-                          Colors.black.withValues(alpha: 0.85),
+                          AppColors.scrim.withValues(alpha: 0.2),
+                          AppColors.scrim.withValues(alpha: 0.4),
+                          AppColors.scrim.withValues(alpha: 0.85),
                         ],
                       ),
                     ),
@@ -217,7 +217,7 @@ class _HeroNewsCarouselState extends State<HeroNewsCarousel> {
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
                             height: 1.35,
-                            color: Colors.white,
+                            color: AppColors.onDark,
                           ),
                         ),
                       ],
@@ -244,7 +244,7 @@ class _HeroNewsCarouselState extends State<HeroNewsCarousel> {
                     color:
                         _currentIndex == index
                             ? AppColors.primary
-                            : Colors.white38,
+                            : AppColors.onDarkFaint,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),

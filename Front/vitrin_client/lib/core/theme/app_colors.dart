@@ -82,4 +82,24 @@ abstract class AppColors {
   // The emergency banner intentionally ignores the active theme so it
   // stays instantly recognizable as an alert in either mode.
   static const Color errorContainer = Color(0xFF93000A);
+
+  // Fixed scrim/overlay family for content painted directly on top of a
+  // background *photo* (e.g. BentoCard.backgroundImage, news hero cards)
+  // or a fixed-dark chip (the floating assistive ball, the emergency
+  // banner). These deliberately do NOT flip with the theme: the backdrop
+  // underneath them is dark regardless of light/dark mode, so the
+  // foreground must always be light too - using the theme-aware
+  // onSurface/onSurfaceVariant here was the cause of several
+  // near-invisible-text bugs (dark text landing on a dark scrim in dark
+  // mode, or a barely-tinted photo in light mode).
+  static const Color scrim = Colors.black;
+  static const Color onDark = Colors.white;
+  static const Color onDarkMuted = Colors.white70;
+  static const Color onDarkFaint = Colors.white38;
+  static const Color onDarkBorder = Colors.white24;
+
+  // Small decorative one-offs, centralized so no screen defines its own
+  // raw Color literal.
+  static const Color weatherAccent = Colors.amber;
+  static const Color canvasLetterbox = Color(0xFF0A0B0B);
 }

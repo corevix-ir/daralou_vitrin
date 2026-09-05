@@ -72,7 +72,7 @@ class _RedesignedHeaderState extends State<RedesignedHeader> {
                 height: 56,
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.onDark,
                   shape: BoxShape.circle,
                   border: Border.all(color: AppColors.outlineVariant),
                 ),
@@ -129,7 +129,7 @@ class _RedesignedHeaderState extends State<RedesignedHeader> {
                   const SizedBox(width: 10),
                   Text('•', style: TextStyle(color: AppColors.onSurfaceVariant.withValues(alpha: 0.6))),
                   const SizedBox(width: 10),
-                  const Icon(Icons.wb_sunny_rounded, color: Colors.amber, size: 22),
+                  const Icon(Icons.wb_sunny_rounded, color: AppColors.weatherAccent, size: 22),
                   const SizedBox(width: 6),
                   Text(
                     '28°C',

@@ -6,7 +6,6 @@ type CreateContent struct {
 	Title     string     `json:"title" validate:"required,min=5,max=50"`
 	Body      string     `json:"body" validate:"required,min=20,max=2000"`
 	Summary   *string    `json:"summary" validate:"omitempty"`
-	Priority  int        `json:"priority" validate:"required,min=1,max=3"`
 	MainImg   string     `json:"main_img" validate:"required"`
 	ImgList   []string   `json:"img_list" validate:"required,min=1,max=100"`
 	DeviceID  []uint     `json:"device_id" validate:"required"`
@@ -28,10 +27,6 @@ type ContentList struct {
 	Size           int              `json:"size"`
 }
 
-type VitrinContentList struct {
-	Scrap []SummaryContent `json:"scrap_content"`
-	Local []SummaryContent `json:"local_content"`
-}
 type ContentInfo struct {
 	ID           uint       `json:"id"`
 	ContentType  string     `json:"content_type"`
@@ -42,7 +37,6 @@ type ContentInfo struct {
 	ExtraImgList []string   `json:"extra_img_list"`
 	ExternalURL  string     `json:"external_url"`
 	Source       string     `json:"source"`
-	Priority     int        `json:"priority"`
 	StartDate    *time.Time `json:"start_date,omitempty"`
 	EndDate      *time.Time `json:"end_date,omitempty"`
 	IsPublished  bool       `json:"is_published"`
@@ -55,7 +49,6 @@ type UpdateContentRequest struct {
 	Title     *string    `json:"title" validate:"omitempty,min=5,max=50"`
 	Body      *string    `json:"body" validate:"omitempty,min=20,max=2000"`
 	Summary   *string    `json:"summary" validate:"omitempty"`
-	Priority  *int       `json:"priority" validate:"omitempty,min=1,max=3"`
 	MainImg   *string    `json:"main_img" validate:"omitempty"`
 	ImgList   *[]string  `json:"img_list" validate:"omitempty,min=1,max=100"`
 	StartDate *time.Time `json:"start_date,omitempty"`

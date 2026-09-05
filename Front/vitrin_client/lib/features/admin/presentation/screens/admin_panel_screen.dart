@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../../core/services/app_update_service.dart';
 import '../../../../core/services/system_intent_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/global_keys.dart';
+import '../../../../shared/widgets/global_snackbar.dart';
 
 class _AdminOption {
   final String title;
@@ -50,7 +52,7 @@ class AdminPanelScreen extends StatelessWidget {
     _AdminOption(
       title: 'تنظیمات سیستم',
       icon: Icons.settings_rounded,
-      color: AppColors.slateDark,
+      color: AppColors.onSurfaceVariant,
       action: SystemIntentService.openSystemSettings,
       failureMessage: 'باز کردن تنظیمات سیستم ممکن نشد.',
     ),
@@ -68,17 +70,29 @@ class AdminPanelScreen extends StatelessWidget {
       action: SystemIntentService.openBluetoothSettings,
       failureMessage: 'باز کردن تنظیمات بلوتوث ممکن نشد.',
     ),
+    _AdminOption(
+      title: 'بررسی بروزرسانی',
+      icon: Icons.system_update_rounded,
+      color: AppColors.primary,
+      action: () async {
+        final context = rootNavigatorKey.currentContext;
+        if (context != null) {
+          await AppUpdateService.checkForUpdate(
+            context: context,
+            showNoUpdateToast: true,
+          );
+          return true;
+        }
+        return false;
+      },
+      failureMessage: 'امکان بررسی بروزرسانی وجود ندارد.',
+    ),
   ];
 
   Future<void> _handleTap(_AdminOption option) async {
     final ok = await option.action();
     if (!ok) {
-      rootScaffoldMessengerKey.currentState?.showSnackBar(
-        SnackBar(
-          content: Text(option.failureMessage, style: const TextStyle(fontFamily: 'Peyda')),
-          backgroundColor: AppColors.slateDark,
-        ),
-      );
+      GlobalSnackBar.showError(option.failureMessage);
     }
   }
 

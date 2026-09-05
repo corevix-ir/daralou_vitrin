@@ -24,8 +24,6 @@ definitions:
         type: boolean
       main_img_url:
         type: string
-      priority:
-        type: integer
       source:
         type: string
       start_date:
@@ -43,6 +41,12 @@ definitions:
         items:
           $ref: '#/definitions/DTO.SummaryContent'
         type: array
+      page:
+        type: integer
+      size:
+        type: integer
+      total:
+        type: integer
     type: object
   DTO.CreateContent:
     properties:
@@ -64,10 +68,6 @@ definitions:
         type: array
       main_img:
         type: string
-      priority:
-        maximum: 3
-        minimum: 1
-        type: integer
       start_date:
         type: string
       summary:
@@ -81,7 +81,6 @@ definitions:
     - device_id
     - img_list
     - main_img
-    - priority
     - title
     type: object
   DTO.CreateDevice:
@@ -165,10 +164,14 @@ definitions:
     properties:
       id:
         type: integer
+      location:
+        type: string
       name:
         type: string
       role:
         $ref: '#/definitions/Models.UserRole'
+      section:
+        type: string
       status:
         type: boolean
       username:
@@ -210,6 +213,29 @@ definitions:
     - role
     - username
     type: object
+  DTO.ReplaceVitrineConfigRequest:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/DTO.VitrineItemInput'
+        type: array
+      size:
+        maximum: 20
+        minimum: 1
+        type: integer
+    required:
+    - size
+    type: object
+  DTO.SendDeviceCommand:
+    properties:
+      payload:
+        additionalProperties: true
+        type: object
+      type:
+        type: string
+    required:
+    - type
+    type: object
   DTO.SummaryContent:
     properties:
       created_at:
@@ -246,10 +272,6 @@ definitions:
         type: array
       main_img:
         type: string
-      priority:
-        maximum: 3
-        minimum: 1
-        type: integer
       start_date:
         type: string
       summary:
@@ -258,12 +280,6 @@ definitions:
         maxLength: 50
         minLength: 5
         type: string
-    required:
-    - body
-    - img_list
-    - main_img
-    - priority
-    - title
     type: object
   DTO.UpdateDevice:
     properties:
@@ -309,14 +325,52 @@ definitions:
     type: object
   DTO.VitrinContentList:
     properties:
-      local_content:
+      items:
         items:
-          $ref: '#/definitions/DTO.SummaryContent'
+          $ref: '#/definitions/DTO.VitrineSlot'
         type: array
-      scrap_content:
+    type: object
+  DTO.VitrineConfig:
+    properties:
+      items:
         items:
-          $ref: '#/definitions/DTO.SummaryContent'
+          $ref: '#/definitions/DTO.VitrineItemDetail'
         type: array
+      size:
+        type: integer
+    type: object
+  DTO.VitrineItemDetail:
+    properties:
+      content:
+        $ref: '#/definitions/DTO.SummaryContent'
+      position:
+        type: integer
+      source:
+        type: string
+    type: object
+  DTO.VitrineItemInput:
+    properties:
+      content_id:
+        type: integer
+      position:
+        minimum: 1
+        type: integer
+    required:
+    - content_id
+    - position
+    type: object
+  DTO.VitrineSlot:
+    properties:
+      content:
+        $ref: '#/definitions/DTO.SummaryContent'
+      is_auto:
+        description: true یعنی این اسلات خودکار از آخرین اخبار پر شده
+        type: boolean
+      position:
+        type: integer
+      source:
+        description: daralouWeb | daralouOperator
+        type: string
     type: object
   Models.JSONB:
     additionalProperties: true
@@ -619,12 +673,16 @@ paths:
   /contents/{content_id}:
     get:
       description: دریافت جزئیات کامل یک محتوا؛ برای محتوای دستی، دسترسی دستگاه چک
-        می‌شود
+        می‌شود (ادمین/اپراتور باید device_id را در query بدهد)
       parameters:
       - description: شناسه محتوا
         in: path
         name: content_id
         required: true
+        type: integer
+      - description: شناسه دستگاه (برای ادمین/اپراتور الزامی است)
+        in: query
+        name: device_id
         type: integer
       produces:
       - application/json
@@ -729,8 +787,14 @@ paths:
       - Content
   /contents/local:
     get:
-      description: لیست صفحه‌بندی‌شده محتوای اختصاص‌داده‌شده به دستگاه جاری
+      description: لیست صفحه‌بندی‌شده محتوای اختصاص‌داده‌شده به یک دستگاه؛ دستگاه
+        (نقش device) خودکار محتوای خودش را می‌بیند، ادمین/اپراتور باید device_id را
+        در query بدهد
       parameters:
+      - description: شناسه دستگاه (برای ادمین/اپراتور الزامی است)
+        in: query
+        name: device_id
+        type: integer
       - description: شماره صفحه (پیش‌فرض 1)
         in: query
         name: page
@@ -746,6 +810,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/DTO.ContentList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
@@ -797,8 +865,8 @@ paths:
       - Content
   /contents/vitrin:
     get:
-      description: اخبار اسکرپ‌شده اخیر + محتوای اختصاصی با priority=1 برای دستگاه
-        جاری
+      description: 'ویترین این دستگاه: آیتم‌های پین‌شده توسط ادمین در جایگاه خودشون
+        + پرشدن خودکار اسلات‌های خالی با آخرین اخبار'
       produces:
       - application/json
       responses:
@@ -883,6 +951,115 @@ paths:
       summary: ایجاد دستگاه
       tags:
       - Devices
+  /devices/{device_id}/vitrine:
+    get:
+      description: تعداد اسلات‌ها و آیتم‌های پین‌شده‌ی ویترین این دستگاه (برای ادیتور
+        پنل ادمین)
+      parameters:
+      - description: شناسه دستگاه
+        in: path
+        name: device_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DTO.VitrineConfig'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: دریافت تنظیمات ویترین یک دستگاه
+      tags:
+      - Vitrine
+    put:
+      consumes:
+      - application/json
+      description: جایگزینی کامل تعداد اسلات‌ها و آیتم‌های پین‌شده‌ی ویترین این دستگاه؛
+        اسلات‌های پین‌نشده خودکار با آخرین اخبار پر می‌شوند
+      parameters:
+      - description: شناسه دستگاه
+        in: path
+        name: device_id
+        required: true
+        type: integer
+      - description: تعداد اسلات‌ها و آیتم‌های پین‌شده
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/DTO.ReplaceVitrineConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DTO.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: تنظیم ویترین یک دستگاه
+      tags:
+      - Vitrine
+  /devices/{device_id}/vitrine/preview:
+    get:
+      description: همون چیزی که خودِ دستگاه از GET /contents/vitrin می‌بینه، برای
+        هر device_id دلخواه (برای پیش‌نمایش در پنل ادمین)
+      parameters:
+      - description: شناسه دستگاه
+        in: path
+        name: device_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DTO.VitrinContentList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: پیش‌نمایش ویترین رندرشده‌ی یک دستگاه
+      tags:
+      - Vitrine
   /devices/{id}:
     delete:
       description: حذف یک دستگاه بر اساس شناسه - فقط ادمین
@@ -954,6 +1131,48 @@ paths:
       security:
       - BearerAuth: []
       summary: به‌روزرسانی دستگاه
+      tags:
+      - Devices
+  /devices/{id}/commands:
+    post:
+      consumes:
+      - application/json
+      description: از طریق اتصال Socket.IO فعلیِ دستگاه یک دستور فوری برایش می‌فرستد
+        (مثلاً باز کردن پنل ادمین بدون رمز) - فقط ادمین
+      parameters:
+      - description: شناسه دستگاه
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: نوع و داده دستور
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/DTO.SendDeviceCommand'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DTO.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: ارسال دستور بلادرنگ به دستگاه
       tags:
       - Devices
 securityDefinitions:

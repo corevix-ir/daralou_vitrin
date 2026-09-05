@@ -48,9 +48,15 @@ class BentoCard extends StatelessWidget {
                   child: Image.asset(image, fit: BoxFit.cover),
                 ),
               ),
+              // Deliberately a fixed dark scrim, not the card's own
+              // (theme-flipping) surface color: in light mode that used to
+              // be a near-white wash that left dark text unreadable
+              // against busy photos, and the reverse in dark mode. A fixed
+              // dark tint plus fixed-light text (AppColors.onDark /
+              // onDarkMuted at call sites) reads correctly in both themes.
               Positioned.fill(
                 child: DecoratedBox(
-                  decoration: BoxDecoration(color: resolvedBackground.withValues(alpha: 0.46)),
+                  decoration: BoxDecoration(color: AppColors.scrim.withValues(alpha: 0.55)),
                 ),
               ),
               contentPadding,

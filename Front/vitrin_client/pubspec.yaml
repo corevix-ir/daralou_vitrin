@@ -20,6 +20,8 @@ dependencies:
   # Keep this below 0.15.7 until flutter_html is updated to match.
   html: 0.15.6
   socket_io_client: ^2.0.3+1
+  ota_update: ^7.1.0
+  package_info_plus: ^10.2.1
 
 dev_dependencies:
   flutter_test:
