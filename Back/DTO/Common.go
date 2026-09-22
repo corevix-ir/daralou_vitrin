@@ -15,3 +15,8 @@ type TokenResponse struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 }
+
+// UploadImageResponse URL عمومیِ تصویرِ آپلودشده - مستقیماً در main_img/img_list قابل استفاده‌ست
+type UploadImageResponse struct {
+	URL string `json:"url" example:"/static/uploads/1234567890.jpg"`
+}

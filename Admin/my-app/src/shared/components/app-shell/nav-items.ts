@@ -8,9 +8,10 @@ export interface NavItem {
 }
 
 export const navItems: NavItem[] = [
-  // Device CRUD + listing is admin-only on the backend (admin-panel-api.md §1, §3) —
-  // operators have no entry point into the device list, only direct vitrine access.
-  { href: "/devices", label: "کیوسک‌ها", roles: ["admin"] },
+  // GET /devices is open to operators too now — the backend auto-filters the list to
+  // whatever devices were assigned via PUT /auth/users/{id}/devices (admin-panel-api.md §1.1).
+  // Device CRUD/commands stay admin-only, gated inside the screen itself.
+  { href: "/devices", label: "کیوسک‌ها", roles: ["admin", "operator"] },
   // User management is admin-only (admin-panel-api.md §2).
   { href: "/users", label: "کاربران", roles: ["admin"] },
 ];

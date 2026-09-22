@@ -13,14 +13,16 @@ import (
 )
 
 type ContentController struct {
-	contentService Services.ContentService
-	deviceService  Services.DeviceService
+	contentService    Services.ContentService
+	deviceService     Services.DeviceService
+	userDeviceService Services.UserDeviceService
 }
 
-func NewContentController(contentService Services.ContentService, deviceService Services.DeviceService) *ContentController {
+func NewContentController(contentService Services.ContentService, deviceService Services.DeviceService, userDeviceService Services.UserDeviceService) *ContentController {
 	return &ContentController{
-		contentService: contentService,
-		deviceService:  deviceService,
+		contentService:    contentService,
+		deviceService:     deviceService,
+		userDeviceService: userDeviceService,
 	}
 }
 
@@ -46,6 +48,16 @@ func (ctrl *ContentController) CreateContent(c echo.Context) error {
 	var request DTO.CreateContent
 	if err := Validation.ValidateRequest(c, &request); err != nil {
 		return err
+	}
+
+	if role, _ := middleware.GetUserRole(c); role == Models.RoleOperator {
+		allOwned, err := ctrl.userDeviceService.IsAllDevicesOwned(userID, request.DeviceID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
+		}
+		if !allOwned {
+			return c.JSON(http.StatusForbidden, echo.Map{"error": "شما به یک یا چند دستگاه ارسال‌شده دسترسی ندارید"})
+		}
 	}
 
 	if err := ctrl.contentService.CreateContent(userID, request); err != nil {
@@ -199,6 +211,17 @@ func (ctrl *ContentController) resolveDeviceID(c echo.Context) (uint, error) {
 	if err != nil {
 		return 0, c.JSON(http.StatusBadRequest, echo.Map{"error": "device_id نامعتبر است"})
 	}
+
+	if role == Models.RoleOperator {
+		owned, err := ctrl.userDeviceService.IsDeviceOwned(userID, uint(deviceID))
+		if err != nil {
+			return 0, c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
+		}
+		if !owned {
+			return 0, c.JSON(http.StatusForbidden, echo.Map{"error": "شما به این دستگاه دسترسی ندارید"})
+		}
+	}
+
 	return uint(deviceID), nil
 }
 
@@ -222,6 +245,10 @@ func (ctrl *ContentController) UpdateContent(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "شناسه نامعتبر است"})
 	}
 
+	if errResp := ctrl.authorizeContentAccess(c, uint(id)); errResp != nil {
+		return errResp
+	}
+
 	var request DTO.UpdateContentRequest
 	if err = c.Bind(&request); err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "بدنه درخواست نامعتبر است"})
@@ -235,6 +262,36 @@ func (ctrl *ContentController) UpdateContent(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{"message": "محتوا با موفقیت به‌روزرسانی شد"})
+}
+
+// authorizeContentAccess برای operator چک می‌کنه که تمام دستگاه‌هایی که این
+// محتوا بهشون اساین شده، متعلق به خودش باشن (نه مثلاً یک دستگاه از شرکت
+// دیگه) - وگرنه اجازه‌ی ویرایش/حذف نداره. admin از این چک مستثناست.
+func (ctrl *ContentController) authorizeContentAccess(c echo.Context, contentID uint) error {
+	role, _ := middleware.GetUserRole(c)
+	if role != Models.RoleOperator {
+		return nil
+	}
+
+	userID, ok := middleware.GetUserID(c)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "کاربر احراز هویت نشده است"})
+	}
+
+	deviceIDs, err := ctrl.contentService.GetAssignedDeviceIDs(contentID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
+	}
+
+	allOwned, err := ctrl.userDeviceService.IsAllDevicesOwned(userID, deviceIDs)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
+	}
+	if !allOwned {
+		return c.JSON(http.StatusForbidden, echo.Map{"error": "شما به این محتوا دسترسی ندارید"})
+	}
+
+	return nil
 }
 
 // DeleteContent godoc
@@ -253,6 +310,10 @@ func (ctrl *ContentController) DeleteContent(c echo.Context) error {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "شناسه نامعتبر است"})
+	}
+
+	if errResp := ctrl.authorizeContentAccess(c, uint(id)); errResp != nil {
+		return errResp
 	}
 
 	if err := ctrl.contentService.DeleteContent(uint(id)); err != nil {

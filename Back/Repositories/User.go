@@ -13,6 +13,7 @@ type UserRepository interface {
 	GetByIDUserWithDevice(id uint) (*Models.User, error)
 	GetByUsername(username string) (*Models.User, error)
 	GetAllUser() ([]Models.User, error)
+	CountUsers() (int64, error)
 	UpdateUser(id uint, updates map[string]interface{}) error
 	UpdateRefreshToken(userID uint, refreshToken string) error
 	DeleteUser(id uint) error
@@ -66,6 +67,14 @@ func (r *userRepository) GetAllUser() ([]Models.User, error) {
 	var users []Models.User
 	err := r.db.Order("created_at DESC").Find(&users).Error
 	return users, err
+}
+
+// CountUsers برای چک «آیا این اولین کاربر سیستمه؟» استفاده می‌شه (bootstrap
+// اولین ادمین بدون نیاز به توکن - نگاه کن به Middleware.RequireAdminOrBootstrap).
+func (r *userRepository) CountUsers() (int64, error) {
+	var count int64
+	err := r.db.Model(&Models.User{}).Count(&count).Error
+	return count, err
 }
 
 func (r *userRepository) UpdateUser(id uint, updates map[string]interface{}) error {

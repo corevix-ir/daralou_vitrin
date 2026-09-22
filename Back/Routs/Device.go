@@ -11,8 +11,11 @@ func RegisterDeviceRoutes(e *echo.Echo, controller *Controllers.DeviceController
 	group := e.Group("/devices", authMW.Authenticate(), roleMW.RequireAdminRole())
 
 	group.POST("", controller.CreateDevice)
-	group.GET("", controller.GetAllDeviceList)
 	group.PUT("/:id", controller.UpdateDevice)
 	group.DELETE("/:id", controller.DeleteDevice)
 	group.POST("/:id/commands", controller.SendCommand)
+
+	// لیست دستگاه‌ها هم برای admin هم operator باز است (خروجی برای operator
+	// خودکار به دستگاه‌های خودش فیلتر می‌شه - نگاه کن به GetAllDeviceList)
+	e.GET("/devices", controller.GetAllDeviceList, authMW.Authenticate(), roleMW.RequireOperatorRole())
 }

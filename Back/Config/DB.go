@@ -132,5 +132,6 @@ func runMigrations(connection *gorm.DB) error {
 		&Models.ContentImage{},
 		&Models.DeviceContent{},
 		&Models.VitrineItem{},
+		&Models.UserDevice{},
 	)
 }

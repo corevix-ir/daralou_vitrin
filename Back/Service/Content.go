@@ -5,8 +5,6 @@ import (
 	"Back/Models"
 	"Back/Repositories"
 	"errors"
-	"path/filepath"
-	"strings"
 	"time"
 )
 
@@ -21,6 +19,7 @@ type ContentService interface {
 	GetDetailsContent(contentID, deviceID uint) (DTO.ContentInfo, error)
 	UpdateContent(id uint, request DTO.UpdateContentRequest) error
 	DeleteContent(id uint) error
+	GetAssignedDeviceIDs(contentID uint) ([]uint, error)
 }
 
 type contentService struct {
@@ -240,7 +239,7 @@ func (s *contentService) GetDetailsContent(contentID, deviceID uint) (DTO.Conten
 
 	imgUrls := make([]string, len(images))
 	for i, img := range images {
-		imgUrls[i] = s.toPublicImageURL(img.ImageURL)
+		imgUrls[i] = ToPublicImageURL(s.baseImagePath, img.ImageURL)
 	}
 
 	summary := ""
@@ -254,7 +253,7 @@ func (s *contentService) GetDetailsContent(contentID, deviceID uint) (DTO.Conten
 		Title:        content.Title,
 		Body:         content.Body,
 		Summary:      summary,
-		MainImageURL: s.toPublicImageURL(content.MainImageURL),
+		MainImageURL: ToPublicImageURL(s.baseImagePath, content.MainImageURL),
 		ExtraImgList: imgUrls,
 		ExternalURL:  content.ExternalURL,
 		Source:       content.Source,
@@ -379,6 +378,12 @@ func (s *contentService) DeleteContent(id uint) error {
 	return nil
 }
 
+// GetAssignedDeviceIDs لیست دستگاه‌هایی که این محتوا بهشون اساین شده رو
+// برمی‌گردونه - برای چک دسترسیِ اپراتور (باید مالک همه‌ی این دستگاه‌ها باشه).
+func (s *contentService) GetAssignedDeviceIDs(contentID uint) ([]uint, error) {
+	return s.Repository.GetDeviceIDsByContent(contentID)
+}
+
 // ============================ Helpers ============================
 
 func paginate(page, size int) (offset, limit int) {
@@ -404,27 +409,7 @@ func (s *contentService) toSummaryContent(c Models.Content) DTO.SummaryContent {
 		ID:        c.ID,
 		Title:     c.Title,
 		Summary:   c.Summary,
-		MainImg:   s.toPublicImageURL(c.MainImageURL),
+		MainImg:   ToPublicImageURL(s.baseImagePath, c.MainImageURL),
 		CreatedAt: c.CreatedAt,
 	}
-}
-
-// toPublicImageURL کند مسیر ذخیره‌شده در دیتابیس (چه مسیر مطلق فایل‌سیستم قدیمی،
-// چه مسیر نسبی) را به یک URL قابل‌دسترس از طریق /static تبدیل می‌کند. بدون این
-// تبدیل، فرانت مسیر خام دیسک سرور را می‌گرفت که هیچ‌وقت روی HTTP قابل سرو نیست.
-func (s *contentService) toPublicImageURL(stored string) string {
-	if stored == "" {
-		return ""
-	}
-	if strings.HasPrefix(stored, "http://") || strings.HasPrefix(stored, "https://") || strings.HasPrefix(stored, "/static/") {
-		return stored
-	}
-
-	rel := stored
-	if s.baseImagePath != "" && strings.HasPrefix(stored, s.baseImagePath) {
-		rel = strings.TrimPrefix(stored, s.baseImagePath)
-	}
-	rel = strings.TrimPrefix(filepath.ToSlash(rel), "/")
-
-	return "/static/" + rel
 }

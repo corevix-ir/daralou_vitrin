@@ -2,6 +2,8 @@ package Controllers
 
 import (
 	"Back/DTO"
+	"Back/Middleware"
+	"Back/Models"
 	"Back/Service"
 	"Back/Validation"
 	"net/http"
@@ -11,15 +13,41 @@ import (
 )
 
 type VitrineController struct {
-	vitrineService Services.VitrineService
-	contentService Services.ContentService
+	vitrineService    Services.VitrineService
+	contentService    Services.ContentService
+	userDeviceService Services.UserDeviceService
 }
 
-func NewVitrineController(vitrineService Services.VitrineService, contentService Services.ContentService) *VitrineController {
+func NewVitrineController(vitrineService Services.VitrineService, contentService Services.ContentService, userDeviceService Services.UserDeviceService) *VitrineController {
 	return &VitrineController{
-		vitrineService: vitrineService,
-		contentService: contentService,
+		vitrineService:    vitrineService,
+		contentService:    contentService,
+		userDeviceService: userDeviceService,
 	}
+}
+
+// authorizeDevice برای operator چک می‌کنه که این device_id متعلق به خودش
+// باشه؛ admin از این چک مستثناست.
+func (ctrl *VitrineController) authorizeDevice(c echo.Context, deviceID uint) error {
+	role, _ := middleware.GetUserRole(c)
+	if role != Models.RoleOperator {
+		return nil
+	}
+
+	userID, ok := middleware.GetUserID(c)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "کاربر احراز هویت نشده است"})
+	}
+
+	owned, err := ctrl.userDeviceService.IsDeviceOwned(userID, deviceID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
+	}
+	if !owned {
+		return c.JSON(http.StatusForbidden, echo.Map{"error": "شما به این دستگاه دسترسی ندارید"})
+	}
+
+	return nil
 }
 
 // GetVitrineConfig godoc
@@ -38,6 +66,9 @@ func (ctrl *VitrineController) GetVitrineConfig(c echo.Context) error {
 	deviceID, err := strconv.ParseUint(c.Param("device_id"), 10, 64)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "شناسه دستگاه نامعتبر است"})
+	}
+	if errResp := ctrl.authorizeDevice(c, uint(deviceID)); errResp != nil {
+		return errResp
 	}
 
 	result, err := ctrl.vitrineService.GetConfig(uint(deviceID))
@@ -66,6 +97,9 @@ func (ctrl *VitrineController) ReplaceVitrineConfig(c echo.Context) error {
 	deviceID, err := strconv.ParseUint(c.Param("device_id"), 10, 64)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "شناسه دستگاه نامعتبر است"})
+	}
+	if errResp := ctrl.authorizeDevice(c, uint(deviceID)); errResp != nil {
+		return errResp
 	}
 
 	var request DTO.ReplaceVitrineConfigRequest
@@ -96,6 +130,9 @@ func (ctrl *VitrineController) GetVitrinePreview(c echo.Context) error {
 	deviceID, err := strconv.ParseUint(c.Param("device_id"), 10, 64)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "شناسه دستگاه نامعتبر است"})
+	}
+	if errResp := ctrl.authorizeDevice(c, uint(deviceID)); errResp != nil {
+		return errResp
 	}
 
 	result, err := ctrl.contentService.GetVitrinList(uint(deviceID))

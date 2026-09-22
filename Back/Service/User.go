@@ -21,18 +21,23 @@ type AuthService interface {
 	DeleteUser(id uint) error
 	RefreshTokens(refreshToken string) (string, string, error)
 	UserList() ([]DTO.ProfileResponse, error)
+	CountUsers() (int64, error)
+	GetUserDevices(userID uint) ([]uint, error)
+	ReplaceUserDevices(userID uint, deviceIDs []uint) error
 }
 
 // پیاده‌سازی سرویس
 type authService struct {
-	Repository Repositories.UserRepository
-	jwtService Auth.JWTService
+	Repository        Repositories.UserRepository
+	jwtService        Auth.JWTService
+	userDeviceService UserDeviceService
 }
 
-func NewAuthService(userRepo Repositories.UserRepository, jwtService Auth.JWTService) AuthService {
+func NewAuthService(userRepo Repositories.UserRepository, jwtService Auth.JWTService, userDeviceService UserDeviceService) AuthService {
 	return &authService{
-		Repository: userRepo,
-		jwtService: jwtService,
+		Repository:        userRepo,
+		jwtService:        jwtService,
+		userDeviceService: userDeviceService,
 	}
 }
 
@@ -262,4 +267,29 @@ func (s *authService) UserList() ([]DTO.ProfileResponse, error) {
 	}
 
 	return employeesInfos, nil
+}
+
+func (s *authService) CountUsers() (int64, error) {
+	return s.Repository.CountUsers()
+}
+
+// GetUserDevices لیست دستگاه‌هایی که به این کاربر (اپراتور) اختصاص داده
+// شده رو برمی‌گردونه.
+func (s *authService) GetUserDevices(userID uint) ([]uint, error) {
+	if _, err := s.Repository.GetByIDUser(userID); err != nil {
+		return nil, errors.New("کاربر یافت نشد")
+	}
+	return s.userDeviceService.GetOwnedDeviceIDs(userID)
+}
+
+// ReplaceUserDevices کل لیست دستگاه‌های قابل‌دسترسی این کاربر (اپراتور) رو
+// با لیست جدید جایگزین می‌کنه.
+func (s *authService) ReplaceUserDevices(userID uint, deviceIDs []uint) error {
+	if _, err := s.Repository.GetByIDUser(userID); err != nil {
+		return errors.New("کاربر یافت نشد")
+	}
+	if err := s.userDeviceService.ReplaceUserDevices(userID, deviceIDs); err != nil {
+		return errors.New("خطا در ذخیره‌ی دستگاه‌های اختصاص‌داده‌شده: " + err.Error())
+	}
+	return nil
 }

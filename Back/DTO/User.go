@@ -32,6 +32,17 @@ type UpdateUserRequest struct {
 	Role     *Models.UserRole `json:"role" validate:"omitempty,oneof=admin operator user device"`
 }
 
+// ReplaceUserDevicesRequest لیست دستگاه‌هایی که این کاربر (اپراتور) بهشون
+// دسترسی داره رو جایگزین می‌کنه (نه افزایشی). برای محدود کردن یک اپراتور
+// (مثلاً یک شرکت پیمانکار) فقط به کیوسک‌های خودش.
+type ReplaceUserDevicesRequest struct {
+	DeviceID []uint `json:"device_id" validate:"required"`
+}
+
+type UserDeviceList struct {
+	DeviceID []uint `json:"device_id"`
+}
+
 type ProfileResponse struct {
 	ID       uint            `json:"id"`
 	IsActive bool            `json:"status"`

@@ -8,7 +8,7 @@ const trimTrailingSlash = (value: string) => value.replace(/\/+$/, "");
 export const config = {
   /** Go backend root — no version prefix, e.g. http://localhost:5749 */
   apiBaseUrl: trimTrailingSlash(
-    process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5749"
+    process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://vitrin.wikm.ir"
   ),
 
   auth: {

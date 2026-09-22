@@ -68,6 +68,7 @@ func InitializeApp() *echo.Echo {
 	contentRepo := Repositories.NewContentRepository(db)
 	deviceRepo := Repositories.NewDeviceRepository(db)
 	vitrineRepo := Repositories.NewVitrineRepository(db)
+	userDeviceRepo := Repositories.NewUserDeviceRepository(db)
 
 	// ---------------------------------------------------------------
 	// FIX #5: اعتبارسنجی متغیرهای محیطی مربوط به JWT
@@ -87,10 +88,12 @@ func InitializeApp() *echo.Echo {
 	// راه‌اندازی سرویس ها
 	jwtService := Auth.NewJWTService(accessSecret, refreshSecret, issuer, accessTokenTTL, refreshTokenTTL)
 
-	authService := Services.NewAuthService(userRepo, jwtService)
+	userDeviceService := Services.NewUserDeviceService(userDeviceRepo)
+	authService := Services.NewAuthService(userRepo, jwtService, userDeviceService)
 	deviceService := Services.NewDeviceService(deviceRepo, authService)
 	contentService := Services.NewContentService(contentRepo, vitrineRepo, deviceRepo, scraper.BaseImagePath)
-	vitrineService := Services.NewVitrineService(vitrineRepo, contentRepo, deviceRepo)
+	vitrineService := Services.NewVitrineService(vitrineRepo, contentRepo, deviceRepo, scraper.BaseImagePath)
+	uploadService := Services.NewUploadService(scraper.BaseImagePath)
 
 	scraperService := Scraper.NewScrapCollyService(contentRepo, scraper.Collector, scraper.BaseImagePath)
 	Scraper.StartScraperScheduler(scraperService)
@@ -105,9 +108,10 @@ func InitializeApp() *echo.Echo {
 
 	// راه‌اندازی کنترلرها
 	authController := Controllers.NewAuthController(authService)
-	contentController := Controllers.NewContentController(contentService, deviceService)
-	deviceController := Controllers.NewDeviceController(deviceService, realtimeHub)
-	vitrineController := Controllers.NewVitrineController(vitrineService, contentService)
+	contentController := Controllers.NewContentController(contentService, deviceService, userDeviceService)
+	deviceController := Controllers.NewDeviceController(deviceService, userDeviceService, realtimeHub)
+	vitrineController := Controllers.NewVitrineController(vitrineService, contentService, userDeviceService)
+	uploadController := Controllers.NewUploadController(uploadService)
 
 	// راه‌اندازی Middleware ها
 	jwtMiddleware := Mymiddleware.NewAuthMiddleware(jwtService)
@@ -137,10 +141,11 @@ func InitializeApp() *echo.Echo {
 	e.Any("/socket.io/*", echo.WrapHandler(realtimeHub.Handler()))
 
 	// ثبت مسیرها
-	Routes.RegisterAuthRoutes(e, authController, jwtMiddleware, roleMiddleware)
+	Routes.RegisterAuthRoutes(e, authController, authService, jwtMiddleware, roleMiddleware)
 	Routes.RegisterContentRoutes(e, contentController, jwtMiddleware, roleMiddleware)
 	Routes.RegisterDeviceRoutes(e, deviceController, jwtMiddleware, roleMiddleware)
 	Routes.RegisterVitrineRoutes(e, vitrineController, jwtMiddleware, roleMiddleware)
+	Routes.RegisterUploadRoutes(e, uploadController, jwtMiddleware, roleMiddleware)
 
 	return e
 }

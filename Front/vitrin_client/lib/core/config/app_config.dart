@@ -13,10 +13,11 @@ class AppConfig {
 
   static AppConfig current = const AppConfig(
     isDebug: true,
-    baseUrl: 'http://localhost:5749/', // Replace or update base URL as required
+    baseUrl:
+        'https://vitrin.wikm.ir/', // Replace or update base URL as required
     updateCheckUrl: 'https://wikm.ir/vitrin/', // آدرس صفحه HTML حاوی شماره نسخه
     updateApkUrl:
-        'http://example.com/version/app-release.apk', // آدرس فایل APK جهت دانلود نسخه جدید
+        'https://wikm.ir/vitrin/app-release.apk', // آدرس فایل APK جهت دانلود نسخه جدید
   );
 
   /// The backend returns media (e.g. `main_img`) as a path relative to

@@ -221,12 +221,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "فقط ادمین می‌تواند کاربر (operator/user/device) جدید بسازد",
+                "description": "در حالت عادی فقط ادمین می‌تواند کاربر (operator/user/device) جدید بسازد. استثنا: اگر هنوز هیچ کاربری در سیستم نباشد (اولین راه‌اندازی)، این اندپوینت بدون نیاز به توکن قابل استفاده است و کاربر ساخته‌شده اجباراً admin می‌شود (مقدار role ارسالی نادیده گرفته می‌شود)",
                 "consumes": [
                     "application/json"
                 ],
@@ -360,6 +355,120 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.MessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/users/{id}/devices": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "شناسه‌ی دستگاه‌هایی که این کاربر (اپراتور) بهشون دسترسی داره - فقط ادمین",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "لیست دستگاه‌های قابل‌دسترسی یک کاربر",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "شناسه کاربر",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.UserDeviceList"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "جایگزینی کامل لیست دستگاه‌هایی که این کاربر (اپراتور) بهشون دسترسی داره - فقط ادمین. برای محدود کردن یک اپراتور (مثلاً یک شرکت پیمانکار) فقط به کیوسک‌های خودش",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "تنظیم دستگاه‌های قابل‌دسترسی یک کاربر",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "شناسه کاربر",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "لیست شناسه‌ی دستگاه‌ها",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/DTO.ReplaceUserDevicesRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -795,7 +904,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "لیست همه دستگاه‌های ثبت‌شده - فقط ادمین",
+                "description": "لیست دستگاه‌های ثبت‌شده - ادمین همه‌ی دستگاه‌ها را می‌بیند، اپراتور فقط دستگاه‌هایی که به او اختصاص داده شده",
                 "produces": [
                     "application/json"
                 ],
@@ -1226,6 +1335,55 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/uploads/images": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "آپلود یک فایل تصویر (jpg/png/gif/webp، حداکثر ۵ مگابایت) و دریافت URL عمومی قابل‌استفاده در main_img/img_list محتوا",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Uploads"
+                ],
+                "summary": "آپلود تصویر",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "فایل تصویر",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.UploadImageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/DTO.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1305,17 +1463,14 @@ const docTemplate = `{
         "DTO.CreateContent": {
             "type": "object",
             "required": [
-                "body",
                 "device_id",
-                "img_list",
                 "main_img",
                 "title"
             ],
             "properties": {
                 "body": {
                     "type": "string",
-                    "maxLength": 2000,
-                    "minLength": 20
+                    "maxLength": 2000
                 },
                 "device_id": {
                     "type": "array",
@@ -1329,7 +1484,6 @@ const docTemplate = `{
                 "img_list": {
                     "type": "array",
                     "maxItems": 100,
-                    "minItems": 1,
                     "items": {
                         "type": "string"
                     }
@@ -1537,6 +1691,20 @@ const docTemplate = `{
                 }
             }
         },
+        "DTO.ReplaceUserDevicesRequest": {
+            "type": "object",
+            "required": [
+                "device_id"
+            ],
+            "properties": {
+                "device_id": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
         "DTO.ReplaceVitrineConfigRequest": {
             "type": "object",
             "required": [
@@ -1607,8 +1775,7 @@ const docTemplate = `{
             "properties": {
                 "body": {
                     "type": "string",
-                    "maxLength": 2000,
-                    "minLength": 20
+                    "maxLength": 2000
                 },
                 "end_date": {
                     "type": "string"
@@ -1616,7 +1783,6 @@ const docTemplate = `{
                 "img_list": {
                     "type": "array",
                     "maxItems": 100,
-                    "minItems": 1,
                     "items": {
                         "type": "string"
                     }
@@ -1696,6 +1862,26 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "DTO.UploadImageResponse": {
+            "type": "object",
+            "properties": {
+                "url": {
+                    "type": "string",
+                    "example": "/static/uploads/1234567890.jpg"
+                }
+            }
+        },
+        "DTO.UserDeviceList": {
+            "type": "object",
+            "properties": {
+                "device_id": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 }
             }
         },
@@ -1806,7 +1992,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:5749",
+	Host:             "",
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Back API",

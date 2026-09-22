@@ -17,17 +17,20 @@ type vitrineService struct {
 	VitrineRepository Repositories.VitrineRepository
 	ContentRepository Repositories.ContentRepository
 	DeviceRepository  Repositories.DeviceRepository
+	baseImagePath     string
 }
 
 func NewVitrineService(
 	vitrineRepo Repositories.VitrineRepository,
 	contentRepo Repositories.ContentRepository,
 	deviceRepo Repositories.DeviceRepository,
+	baseImagePath string,
 ) VitrineService {
 	return &vitrineService{
 		VitrineRepository: vitrineRepo,
 		ContentRepository: contentRepo,
 		DeviceRepository:  deviceRepo,
+		baseImagePath:     baseImagePath,
 	}
 }
 
@@ -54,7 +57,7 @@ func (s *vitrineService) GetConfig(deviceID uint) (DTO.VitrineConfig, error) {
 				ID:        item.Content.ID,
 				Title:     item.Content.Title,
 				Summary:   item.Content.Summary,
-				MainImg:   item.Content.MainImageURL,
+				MainImg:   ToPublicImageURL(s.baseImagePath, item.Content.MainImageURL),
 				CreatedAt: item.Content.CreatedAt,
 			},
 		}

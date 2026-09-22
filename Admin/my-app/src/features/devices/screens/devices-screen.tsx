@@ -15,10 +15,15 @@ import { Drawer } from "@/shared/components/drawer";
 import { ConfirmDialog } from "@/shared/components/confirm-dialog";
 import { formatRelative } from "@/shared/utils/format";
 import { useToast } from "@/shared/components/toast/toast-context";
+import { useAuth } from "@/features/auth/context/auth-context";
 
 export function DevicesScreen() {
   const router = useRouter();
   const toast = useToast();
+  const { user } = useAuth();
+  // Device CRUD + realtime commands stay admin-only even though the list itself
+  // is now visible to operators too (admin-panel-api.md §1, §3).
+  const isAdmin = user?.role === "admin";
 
   const [devices, setDevices] = useState<Device[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -99,9 +104,11 @@ export function DevicesScreen() {
           {devices && (
             <span className="text-xs text-slate-500 dark:text-slate-400">{devices.length} کیوسک ثبت‌شده</span>
           )}
-          <Button variant="primary" size="sm" onClick={() => setCreateOpen(true)}>
-            + افزودن کیوسک
-          </Button>
+          {isAdmin && (
+            <Button variant="primary" size="sm" onClick={() => setCreateOpen(true)}>
+              + افزودن کیوسک
+            </Button>
+          )}
         </div>
       </div>
 
@@ -149,20 +156,24 @@ export function DevicesScreen() {
                         <Button size="sm" onClick={() => router.push(`/vitrine/${device.id}`)}>
                           تنظیم ویترین
                         </Button>
-                        <Button size="sm" variant="secondary" onClick={() => setEditingDevice(device)}>
-                          ویرایش
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          loading={commandLoadingId === device.id}
-                          onClick={() => handleSendCommand(device)}
-                        >
-                          باز کردن پنل
-                        </Button>
-                        <Button size="sm" variant="danger" onClick={() => setDeletingDevice(device)}>
-                          حذف
-                        </Button>
+                        {isAdmin && (
+                          <>
+                            <Button size="sm" variant="secondary" onClick={() => setEditingDevice(device)}>
+                              ویرایش
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              loading={commandLoadingId === device.id}
+                              onClick={() => handleSendCommand(device)}
+                            >
+                              باز کردن پنل
+                            </Button>
+                            <Button size="sm" variant="danger" onClick={() => setDeletingDevice(device)}>
+                              حذف
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -205,20 +216,24 @@ export function DevicesScreen() {
                   <Button size="sm" className="flex-1" onClick={() => router.push(`/vitrine/${device.id}`)}>
                     تنظیم ویترین
                   </Button>
-                  <Button size="sm" variant="secondary" onClick={() => setEditingDevice(device)}>
-                    ویرایش
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    loading={commandLoadingId === device.id}
-                    onClick={() => handleSendCommand(device)}
-                  >
-                    باز کردن پنل
-                  </Button>
-                  <Button size="sm" variant="danger" onClick={() => setDeletingDevice(device)}>
-                    حذف
-                  </Button>
+                  {isAdmin && (
+                    <>
+                      <Button size="sm" variant="secondary" onClick={() => setEditingDevice(device)}>
+                        ویرایش
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        loading={commandLoadingId === device.id}
+                        onClick={() => handleSendCommand(device)}
+                      >
+                        باز کردن پنل
+                      </Button>
+                      <Button size="sm" variant="danger" onClick={() => setDeletingDevice(device)}>
+                        حذف
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             ))}

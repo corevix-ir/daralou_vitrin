@@ -193,8 +193,9 @@ func (s *scrapCollyService) DownloadAsset(linkImage string) (string, error) {
 		return "", err
 	}
 
-	// مسیر قابل ذخیره در DB
-	return filePath, nil
+	// مسیر عمومیِ قابل‌سرو از طریق /static (نه مسیر مطلق فایل‌سیستم که filePath
+	// نگه می‌داره - همون قراردادی که Service/Upload.go برای آپلود دستی استفاده می‌کنه).
+	return "/static/news/" + fileName, nil
 
 }
 

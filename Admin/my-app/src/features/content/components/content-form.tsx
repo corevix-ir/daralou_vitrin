@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { ApiError } from "@/core/http/api-error";
 import { Field, TextInput, TextArea } from "@/shared/components/form-field";
 import { Button } from "@/shared/components/button";
+import { ImageUploadField } from "./image-upload-field";
 
 export interface ContentFormValues {
   title: string;
@@ -47,9 +48,14 @@ export function ContentForm({
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
 
+    if (!values.mainImg) {
+      setError("تصویر اصلی الزامی است");
+      return;
+    }
+
     const cleanedImgList = values.imgList.map((img) => img.trim()).filter(Boolean);
     if (cleanedImgList.length === 0) {
-      setError("حداقل یک تصویر برای محتوا لازم است");
+      setError("حداقل یک تصویر بیشتر برای محتوا لازم است");
       return;
     }
 
@@ -98,32 +104,22 @@ export function ContentForm({
         />
       </Field>
 
-      <Field
-        label="تصویر اصلی (آدرس URL)"
-        hint="در حال حاضر آپلود فایل پشتیبانی نمی‌شود — آدرس تصویر از قبل هاست‌شده را وارد کنید"
-        error={fieldErrors.main_img}
-      >
-        <TextInput
+      <Field label="تصویر اصلی" error={fieldErrors.main_img}>
+        <ImageUploadField
           value={values.mainImg}
-          onChange={(e) => setValues((v) => ({ ...v, mainImg: e.target.value }))}
-          required
-          placeholder="/static/uploads/xyz.jpg"
+          onChange={(url) => setValues((v) => ({ ...v, mainImg: url }))}
         />
       </Field>
 
-      <Field label="تصاویر بیشتر (آدرس URL)">
-        <div className="flex flex-col gap-2">
+      <Field label="تصاویر بیشتر">
+        <div className="flex flex-col gap-3">
           {values.imgList.map((img, index) => (
-            <div key={index} className="flex gap-2">
-              <TextInput
-                value={img}
-                onChange={(e) => updateImg(index, e.target.value)}
-                placeholder="/static/uploads/xyz.jpg"
-              />
-              <Button type="button" variant="secondary" size="sm" onClick={() => removeImgRow(index)}>
-                حذف
-              </Button>
-            </div>
+            <ImageUploadField
+              key={index}
+              value={img}
+              onChange={(url) => updateImg(index, url)}
+              onRemove={() => removeImgRow(index)}
+            />
           ))}
           <Button type="button" variant="secondary" size="sm" onClick={addImgRow} className="self-start">
             + افزودن تصویر

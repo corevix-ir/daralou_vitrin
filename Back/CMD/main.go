@@ -8,7 +8,6 @@ import (
 // @version         1.0
 // @description     مستندات API پروژه Back (احراز هویت، مدیریت محتوا، مدیریت دستگاه‌ها).
 
-// @host      localhost:5749
 // @BasePath  /
 
 // @securityDefinitions.apikey  BearerAuth

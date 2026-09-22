@@ -3,7 +3,7 @@ import { DevicesScreen } from "@/features/devices/screens/devices-screen";
 
 export default function DevicesPage() {
   return (
-    <RequireRole roles={["admin"]} deniedMessage="لیست کیوسک‌ها فقط برای نقش ادمین در دسترس است.">
+    <RequireRole roles={["admin", "operator"]}>
       <DevicesScreen />
     </RequireRole>
   );

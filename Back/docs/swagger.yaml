@@ -52,7 +52,6 @@ definitions:
     properties:
       body:
         maxLength: 2000
-        minLength: 20
         type: string
       device_id:
         items:
@@ -64,7 +63,6 @@ definitions:
         items:
           type: string
         maxItems: 100
-        minItems: 1
         type: array
       main_img:
         type: string
@@ -77,9 +75,7 @@ definitions:
         minLength: 5
         type: string
     required:
-    - body
     - device_id
-    - img_list
     - main_img
     - title
     type: object
@@ -213,6 +209,15 @@ definitions:
     - role
     - username
     type: object
+  DTO.ReplaceUserDevicesRequest:
+    properties:
+      device_id:
+        items:
+          type: integer
+        type: array
+    required:
+    - device_id
+    type: object
   DTO.ReplaceVitrineConfigRequest:
     properties:
       items:
@@ -260,7 +265,6 @@ definitions:
     properties:
       body:
         maxLength: 2000
-        minLength: 20
         type: string
       end_date:
         type: string
@@ -268,7 +272,6 @@ definitions:
         items:
           type: string
         maxItems: 100
-        minItems: 1
         type: array
       main_img:
         type: string
@@ -322,6 +325,19 @@ definitions:
         - device
       username:
         type: string
+    type: object
+  DTO.UploadImageResponse:
+    properties:
+      url:
+        example: /static/uploads/1234567890.jpg
+        type: string
+    type: object
+  DTO.UserDeviceList:
+    properties:
+      device_id:
+        items:
+          type: integer
+        type: array
     type: object
   DTO.VitrinContentList:
     properties:
@@ -387,7 +403,6 @@ definitions:
     - RoleOperator
     - RoleUser
     - RoleDevice
-host: localhost:5749
 info:
   contact: {}
   description: مستندات API پروژه Back (احراز هویت، مدیریت محتوا، مدیریت دستگاه‌ها).
@@ -529,7 +544,10 @@ paths:
     post:
       consumes:
       - application/json
-      description: فقط ادمین می‌تواند کاربر (operator/user/device) جدید بسازد
+      description: 'در حالت عادی فقط ادمین می‌تواند کاربر (operator/user/device) جدید
+        بسازد. استثنا: اگر هنوز هیچ کاربری در سیستم نباشد (اولین راه‌اندازی)، این
+        اندپوینت بدون نیاز به توکن قابل استفاده است و کاربر ساخته‌شده اجباراً admin
+        می‌شود (مقدار role ارسالی نادیده گرفته می‌شود)'
       parameters:
       - description: اطلاعات کاربر جدید
         in: body
@@ -556,8 +574,6 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/DTO.ErrorResponse'
-      security:
-      - BearerAuth: []
       summary: ثبت کاربر جدید
       tags:
       - Users
@@ -632,6 +648,82 @@ paths:
       security:
       - BearerAuth: []
       summary: به‌روزرسانی کاربر
+      tags:
+      - Users
+  /auth/users/{id}/devices:
+    get:
+      description: شناسه‌ی دستگاه‌هایی که این کاربر (اپراتور) بهشون دسترسی داره -
+        فقط ادمین
+      parameters:
+      - description: شناسه کاربر
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DTO.UserDeviceList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: لیست دستگاه‌های قابل‌دسترسی یک کاربر
+      tags:
+      - Users
+    put:
+      consumes:
+      - application/json
+      description: جایگزینی کامل لیست دستگاه‌هایی که این کاربر (اپراتور) بهشون دسترسی
+        داره - فقط ادمین. برای محدود کردن یک اپراتور (مثلاً یک شرکت پیمانکار) فقط
+        به کیوسک‌های خودش
+      parameters:
+      - description: شناسه کاربر
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: لیست شناسه‌ی دستگاه‌ها
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/DTO.ReplaceUserDevicesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DTO.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: تنظیم دستگاه‌های قابل‌دسترسی یک کاربر
       tags:
       - Users
   /contents:
@@ -893,7 +985,8 @@ paths:
       - Content
   /devices:
     get:
-      description: لیست همه دستگاه‌های ثبت‌شده - فقط ادمین
+      description: لیست دستگاه‌های ثبت‌شده - ادمین همه‌ی دستگاه‌ها را می‌بیند، اپراتور
+        فقط دستگاه‌هایی که به او اختصاص داده شده
       produces:
       - application/json
       responses:
@@ -1175,6 +1268,38 @@ paths:
       summary: ارسال دستور بلادرنگ به دستگاه
       tags:
       - Devices
+  /uploads/images:
+    post:
+      consumes:
+      - multipart/form-data
+      description: آپلود یک فایل تصویر (jpg/png/gif/webp، حداکثر ۵ مگابایت) و دریافت
+        URL عمومی قابل‌استفاده در main_img/img_list محتوا
+      parameters:
+      - description: فایل تصویر
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/DTO.UploadImageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/DTO.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: آپلود تصویر
+      tags:
+      - Uploads
 securityDefinitions:
   BearerAuth:
     description: توکن دسترسی رو به‌صورت "Bearer {access_token}" وارد کن.

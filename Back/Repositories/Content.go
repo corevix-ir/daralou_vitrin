@@ -20,6 +20,7 @@ type ContentRepository interface {
 	CountContentsByDevice(deviceID uint) (int64, error)
 	AssignContentToDevice(deviceID, contentID uint) error
 	IsContentAssignedToDevice(deviceID, contentID uint) (bool, error)
+	GetDeviceIDsByContent(contentID uint) ([]uint, error)
 	UpdateContent(id uint, updates map[string]interface{}) error
 	DeleteContent(id uint) error
 
@@ -153,6 +154,17 @@ func (r *contentRepository) IsContentAssignedToDevice(deviceID, contentID uint) 
 	}
 
 	return count > 0, nil
+}
+
+// GetDeviceIDsByContent برعکس AssignContentToDevice - لیست دستگاه‌هایی که این
+// محتوا بهشون اساین شده رو برمی‌گردونه. برای چک کردن اینکه یک اپراتور اجازه‌ی
+// ویرایش/حذف این محتوا رو داره یا نه (باید مالک همه‌ی این دستگاه‌ها باشه).
+func (r *contentRepository) GetDeviceIDsByContent(contentID uint) ([]uint, error) {
+	var ids []uint
+	err := r.db.Model(&Models.DeviceContent{}).
+		Where("content_id = ?", contentID).
+		Pluck("device_id", &ids).Error
+	return ids, err
 }
 
 func (r *contentRepository) UpdateContent(id uint, updates map[string]interface{}) error {

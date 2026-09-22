@@ -2,9 +2,10 @@ package Controllers
 
 import (
 	"Back/DTO"
+	"Back/Middleware"
+	"Back/Models"
 	"Back/Service"
 	"Back/Validation"
-	"Back/Middleware"
 	"net/http"
 	"strconv"
 
@@ -136,11 +137,10 @@ func (ctrl *AuthController) Profile(c echo.Context) error {
 
 // Register godoc
 // @Summary      ثبت کاربر جدید
-// @Description  فقط ادمین می‌تواند کاربر (operator/user/device) جدید بسازد
+// @Description  در حالت عادی فقط ادمین می‌تواند کاربر (operator/user/device) جدید بسازد. استثنا: اگر هنوز هیچ کاربری در سیستم نباشد (اولین راه‌اندازی)، این اندپوینت بدون نیاز به توکن قابل استفاده است و کاربر ساخته‌شده اجباراً admin می‌شود (مقدار role ارسالی نادیده گرفته می‌شود)
 // @Tags         Users
 // @Accept       json
 // @Produce      json
-// @Security     BearerAuth
 // @Param        request  body      DTO.RegisterRequest  true  "اطلاعات کاربر جدید"
 // @Success      201      {object}  DTO.MessageResponse
 // @Failure      400      {object}  DTO.ErrorResponse
@@ -151,6 +151,13 @@ func (ctrl *AuthController) Register(c echo.Context) error {
 	var request DTO.RegisterRequest
 	if err := Validation.ValidateRequest(c, &request); err != nil {
 		return err
+	}
+
+	// نگاه کن به middleware.RequireAdminOrBootstrap: وقتی هنوز هیچ کاربری
+	// در سیستم نباشه، این فلگ true ست می‌شه و کاربر اول اجباراً admin می‌شه
+	// - مستقل از چیزی که کلاینت توی role فرستاده.
+	if isBootstrap, _ := c.Get("isBootstrap").(bool); isBootstrap {
+		request.Role = Models.RoleAdmin
 	}
 
 	if _, err := ctrl.authService.Register(nil, request); err != nil {
@@ -234,4 +241,62 @@ func (ctrl *AuthController) DeleteUser(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{"message": "کاربر با موفقیت حذف شد"})
+}
+
+// GetUserDevices godoc
+// @Summary      لیست دستگاه‌های قابل‌دسترسی یک کاربر
+// @Description  شناسه‌ی دستگاه‌هایی که این کاربر (اپراتور) بهشون دسترسی داره - فقط ادمین
+// @Tags         Users
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id  path      int  true  "شناسه کاربر"
+// @Success      200 {object}  DTO.UserDeviceList
+// @Failure      400 {object}  DTO.ErrorResponse
+// @Failure      401 {object}  DTO.ErrorResponse
+// @Failure      500 {object}  DTO.ErrorResponse
+// @Router       /auth/users/{id}/devices [get]
+func (ctrl *AuthController) GetUserDevices(c echo.Context) error {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "شناسه نامعتبر است"})
+	}
+
+	deviceIDs, err := ctrl.authService.GetUserDevices(uint(id))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, DTO.UserDeviceList{DeviceID: deviceIDs})
+}
+
+// ReplaceUserDevices godoc
+// @Summary      تنظیم دستگاه‌های قابل‌دسترسی یک کاربر
+// @Description  جایگزینی کامل لیست دستگاه‌هایی که این کاربر (اپراتور) بهشون دسترسی داره - فقط ادمین. برای محدود کردن یک اپراتور (مثلاً یک شرکت پیمانکار) فقط به کیوسک‌های خودش
+// @Tags         Users
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id       path      int                          true  "شناسه کاربر"
+// @Param        request  body      DTO.ReplaceUserDevicesRequest  true  "لیست شناسه‌ی دستگاه‌ها"
+// @Success      200      {object}  DTO.MessageResponse
+// @Failure      400      {object}  DTO.ErrorResponse
+// @Failure      401      {object}  DTO.ErrorResponse
+// @Failure      500      {object}  DTO.ErrorResponse
+// @Router       /auth/users/{id}/devices [put]
+func (ctrl *AuthController) ReplaceUserDevices(c echo.Context) error {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "شناسه نامعتبر است"})
+	}
+
+	var request DTO.ReplaceUserDevicesRequest
+	if err = Validation.ValidateRequest(c, &request); err != nil {
+		return err
+	}
+
+	if err = ctrl.authService.ReplaceUserDevices(uint(id), request.DeviceID); err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "دستگاه‌های کاربر با موفقیت به‌روزرسانی شد"})
 }

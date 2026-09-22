@@ -5,6 +5,7 @@ import { usersApi } from "../services/users.api";
 import type { ManagedUser } from "../model/user.types";
 import { UserCreateForm } from "../components/user-create-form";
 import { UserEditForm } from "../components/user-edit-form";
+import { OperatorDeviceAccessForm } from "../components/operator-device-access-form";
 import { useAuth } from "@/features/auth/context/auth-context";
 import { roleLabels } from "@/shared/utils/role-labels";
 import { ApiError } from "@/core/http/api-error";
@@ -26,6 +27,7 @@ export function UsersScreen() {
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<ManagedUser | null>(null);
+  const [accessUser, setAccessUser] = useState<ManagedUser | null>(null);
   const [deletingUser, setDeletingUser] = useState<ManagedUser | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -119,6 +121,11 @@ export function UsersScreen() {
                     </td>
                     <td className="px-4 py-2.5">
                       <div className="flex flex-wrap justify-end gap-1.5">
+                        {u.role === "operator" && (
+                          <Button size="sm" variant="secondary" onClick={() => setAccessUser(u)}>
+                            دستگاه‌ها
+                          </Button>
+                        )}
                         <Button size="sm" variant="secondary" onClick={() => setEditingUser(u)}>
                           ویرایش
                         </Button>
@@ -158,6 +165,11 @@ export function UsersScreen() {
                   <Badge tone="blue">{roleLabels[u.role]}</Badge>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-1.5">
+                  {u.role === "operator" && (
+                    <Button size="sm" variant="secondary" onClick={() => setAccessUser(u)}>
+                      دستگاه‌ها
+                    </Button>
+                  )}
                   <Button size="sm" className="flex-1" variant="secondary" onClick={() => setEditingUser(u)}>
                     ویرایش
                   </Button>
@@ -194,6 +206,18 @@ export function UsersScreen() {
               setEditingUser(null);
               toast.show("تغییرات ذخیره شد", "success");
               load();
+            }}
+          />
+        )}
+      </Drawer>
+
+      <Drawer open={accessUser !== null} onClose={() => setAccessUser(null)} title="دسترسی به کیوسک‌ها">
+        {accessUser && (
+          <OperatorDeviceAccessForm
+            user={accessUser}
+            onSuccess={() => {
+              setAccessUser(null);
+              toast.show("دسترسی‌های اپراتور ذخیره شد", "success");
             }}
           />
         )}

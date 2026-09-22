@@ -125,6 +125,9 @@ class HttpClient {
   private async performFetch(requestConfig: RequestConfig): Promise<Response> {
     const url = buildUrl(this.baseUrl, requestConfig);
     const hasBody = requestConfig.body !== undefined;
+    // FormData (file uploads) must go through untouched — the browser sets its own
+    // multipart Content-Type with boundary; JSON.stringify would just corrupt it.
+    const isFormData = typeof FormData !== "undefined" && requestConfig.body instanceof FormData;
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), config.http.requestTimeoutMs);
@@ -134,10 +137,10 @@ class HttpClient {
       return await fetch(url, {
         method: requestConfig.method,
         headers: {
-          ...(hasBody ? { "Content-Type": "application/json" } : {}),
+          ...(hasBody && !isFormData ? { "Content-Type": "application/json" } : {}),
           ...requestConfig.headers,
         },
-        body: hasBody ? JSON.stringify(requestConfig.body) : undefined,
+        body: hasBody ? (isFormData ? (requestConfig.body as FormData) : JSON.stringify(requestConfig.body)) : undefined,
         signal: controller.signal,
       });
     } catch {

@@ -17,4 +17,14 @@ export const usersApi = {
   remove(id: number) {
     return httpClient.delete<unknown>(`/auth/users/${id}`);
   },
+
+  // Which devices an `operator` account can act on — see admin-panel-api.md §1.1.
+  // An operator with no devices assigned has zero access to content/vitrine endpoints.
+  getDeviceAccess(id: number) {
+    return httpClient.get<{ device_id: number[] }>(`/auth/users/${id}/devices`);
+  },
+
+  setDeviceAccess(id: number, deviceIds: number[]) {
+    return httpClient.put<{ device_id: number[] }>(`/auth/users/${id}/devices`, { device_id: deviceIds });
+  },
 };

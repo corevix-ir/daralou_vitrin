@@ -2,6 +2,8 @@ package Controllers
 
 import (
 	"Back/DTO"
+	"Back/Middleware"
+	"Back/Models"
 	"Back/Realtime"
 	"Back/Service"
 	"Back/Validation"
@@ -12,12 +14,13 @@ import (
 )
 
 type DeviceController struct {
-	deviceService Services.DeviceService
-	hub           *Realtime.Hub
+	deviceService     Services.DeviceService
+	userDeviceService Services.UserDeviceService
+	hub               *Realtime.Hub
 }
 
-func NewDeviceController(deviceService Services.DeviceService, hub *Realtime.Hub) *DeviceController {
-	return &DeviceController{deviceService: deviceService, hub: hub}
+func NewDeviceController(deviceService Services.DeviceService, userDeviceService Services.UserDeviceService, hub *Realtime.Hub) *DeviceController {
+	return &DeviceController{deviceService: deviceService, userDeviceService: userDeviceService, hub: hub}
 }
 
 // CreateDevice godoc
@@ -48,7 +51,7 @@ func (ctrl *DeviceController) CreateDevice(c echo.Context) error {
 
 // GetAllDeviceList godoc
 // @Summary      لیست دستگاه‌ها
-// @Description  لیست همه دستگاه‌های ثبت‌شده - فقط ادمین
+// @Description  لیست دستگاه‌های ثبت‌شده - ادمین همه‌ی دستگاه‌ها را می‌بیند، اپراتور فقط دستگاه‌هایی که به او اختصاص داده شده
 // @Tags         Devices
 // @Produce      json
 // @Security     BearerAuth
@@ -61,6 +64,30 @@ func (ctrl *DeviceController) GetAllDeviceList(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
 	}
+
+	if role, _ := middleware.GetUserRole(c); role == Models.RoleOperator {
+		userID, ok := middleware.GetUserID(c)
+		if !ok {
+			return c.JSON(http.StatusUnauthorized, echo.Map{"error": "کاربر احراز هویت نشده است"})
+		}
+		ownedIDs, err := ctrl.userDeviceService.GetOwnedDeviceIDs(userID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
+		}
+		ownedSet := make(map[uint]bool, len(ownedIDs))
+		for _, id := range ownedIDs {
+			ownedSet[id] = true
+		}
+
+		filtered := make([]DTO.DeviceList, 0, len(result))
+		for _, device := range result {
+			if ownedSet[device.ID] {
+				filtered = append(filtered, device)
+			}
+		}
+		result = filtered
+	}
+
 	return c.JSON(http.StatusOK, result)
 }
 
